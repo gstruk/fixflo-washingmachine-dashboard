@@ -130,6 +130,18 @@ tr:hover td{background:var(--surface2)}
 .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0 4px;font-size:0.82rem;color:var(--muted)}
 .pagination button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
 .pagination button:disabled{opacity:0.35;cursor:default}
+tr.row-expandable{cursor:pointer}
+tr.row-expandable:hover td{background:rgba(124,106,247,0.06)!important}
+tr.row-expanded>td{background:rgba(124,106,247,0.05)!important;border-bottom:none!important}
+tr.detail-row td{padding:0 8px 10px;border-bottom:1px solid rgba(48,54,61,0.5)}
+.expand-panel{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 20px
+}
+.expand-full{grid-column:1/-1;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:2px}
+.expand-label{font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.expand-val{font-size:0.84rem;color:var(--text);font-weight:500;word-break:break-word}
 .tbl-filters{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid var(--border)
@@ -838,6 +850,67 @@ function updateSortIcons() {
 }
 
 // -- Table render --
+var expandedId = null;
+
+function toggleRow(tr, id) {
+    var existing = document.getElementById('detail-row-' + (expandedId || '__none__'));
+    if (existing) existing.remove();
+    document.querySelectorAll('tr.row-expanded').forEach(function(r){ r.classList.remove('row-expanded'); });
+
+    if (expandedId === id) { expandedId = null; return; }
+    expandedId = id;
+    tr.classList.add('row-expanded');
+
+    var t = RAW.find(function(r){ return r.id === id; });
+    if (!t) return;
+
+    var fmtD = function(s) {
+        if (!s) return '—';
+        var p = s.split('-'); return p[2] + '/' + p[1] + '/' + p[0];
+    };
+    var isClosed   = t.status === 'Closed';
+    var isOpenStat = isOpenStatus(t.status);
+
+    var timeField = '';
+    if (isClosed && t.days !== null) {
+        var cls = t.days < 7 ? 'days-fast' : t.days < 30 ? 'days-med' : 'days-slow';
+        timeField = '<div class="expand-label">Resolution Time</div><div class="expand-val"><span class="' + cls + '">' + t.days + ' days</span></div>';
+    } else if (isOpenStat) {
+        timeField = '<div class="expand-label">Days Open</div><div class="expand-val">' +
+            '<span style="background:rgba(63,185,80,0.18);color:#3fb950;border:1px solid rgba(63,185,80,0.45);' +
+            'padding:2px 8px;border-radius:4px;font-weight:700;font-size:0.82rem">' + effDays(t) + 'd</span></div>';
+    }
+
+    var reopenedField = t.reopened
+        ? '<div><div class="expand-label">Reopened</div><div class="expand-val">' +
+          '<span class="reopened-badge">&#x21A9; Reopened</span>' +
+          (t.prev_cd ? ' <span style="color:var(--muted);font-size:0.78rem">prev. closed ' + fmtD(t.prev_cd) + '</span>' : '') +
+          '</div></div>'
+        : '';
+
+    var html = '<div class="expand-panel">' +
+        '<div class="expand-full">' +
+            '<div class="expand-label">Full Issue Title</div>' +
+            '<div class="expand-val">' + t.title + '</div>' +
+        '</div>' +
+        '<div><div class="expand-label">Property</div><div class="expand-val">' + (t.prop || '—') + '</div></div>' +
+        '<div><div class="expand-label">Eircode</div><div class="expand-val">' + (t.postcode || '—') + '</div></div>' +
+        '<div><div class="expand-label">Raised</div><div class="expand-val">' + fmtD(t.rd) + '</div></div>' +
+        '<div><div class="expand-label">Closed</div><div class="expand-val">' + (isClosed ? fmtD(t.cd) : '—') + '</div></div>' +
+        '<div>' + timeField + '</div>' +
+        '<div><div class="expand-label">Priority</div><div class="expand-val">' + priChip(t.priority) + '</div></div>' +
+        '<div><div class="expand-label">Status</div><div class="expand-val">' + statusChip(t.status) + '</div></div>' +
+        '<div><div class="expand-label">Assigned Team</div><div class="expand-val">' + (t.team || '<span style="opacity:0.4">—</span>') + '</div></div>' +
+        reopenedField +
+    '</div>';
+
+    var detailRow = document.createElement('tr');
+    detailRow.id = 'detail-row-' + id;
+    detailRow.className = 'detail-row';
+    detailRow.innerHTML = '<td colspan="10">' + html + '</td>';
+    tr.parentNode.insertBefore(detailRow, tr.nextSibling);
+}
+
 function renderTable() {
     var q         = document.getElementById('tableSearch').value.toLowerCase();
     var tblOpen   = document.getElementById('tblOpenSel').value;
@@ -905,6 +978,7 @@ function renderTable() {
     };
     var shortTitle = function(s) { return s.length > 52 ? s.substring(0, 50) + '...' : s; };
 
+    expandedId = null;
     var tbody = document.getElementById('tableBody');
     tbody.innerHTML = slice.map(function(t) {
         var isClosed   = t.status === 'Closed';
@@ -924,12 +998,15 @@ function renderTable() {
         var reopenedBadge = t.reopened
             ? '<span class="reopened-badge" title="Previously closed on ' + (t.prev_cd ? fmtDate(t.prev_cd) : '?') + '">&#x21A9; Reopened</span>'
             : '';
-        var rowStyle = t.reopened && t.isOpen ? ' style="background:rgba(240,136,62,0.04)"' : '';
+        var rowStyle = t.reopened && t.isOpen ? 'background:rgba(240,136,62,0.04)' : '';
+        var rowAttrs = ' class="row-expandable' + (expandedId === t.id ? ' row-expanded' : '') + '"' +
+            ' onclick="toggleRow(this,\'' + t.id + '\')"' +
+            (rowStyle ? ' style="' + rowStyle + '"' : '');
 
-        return '<tr' + rowStyle + '>' +
+        return '<tr' + rowAttrs + '>' +
             '<td><div class="id-cell">' +
                 '<span class="badge">' + t.id + '</span>' +
-                '<button class="copy-btn" data-id="' + t.id + '" onclick="doCopy(this)" title="Copy ID">' + COPY_ICON + '</button>' +
+                '<button class="copy-btn" data-id="' + t.id + '" onclick="event.stopPropagation();doCopy(this)" title="Copy ID">' + COPY_ICON + '</button>' +
             '</div>' + reopenedBadge + '</td>' +
             '<td title="' + t.title + '">' + shortTitle(t.title) + '</td>' +
             '<td class="prop-cell" title="' + t.prop + '">' + shortProp(t.prop) + '</td>' +
