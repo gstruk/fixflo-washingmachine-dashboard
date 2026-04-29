@@ -291,6 +291,17 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     </div>
   </div>
 
+  <div class="charts-row r2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Team Ticket Volume &mdash; Open vs Closed</div>
+      <div class="chart-wrap" style="min-height:260px"><canvas id="cTeamVol"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot" style="background:var(--orange)"></span>Team Avg Resolution Time (days)</div>
+      <div class="chart-wrap" style="min-height:260px"><canvas id="cTeamRes"></canvas></div>
+    </div>
+  </div>
+
   <div class="table-card">
     <div class="table-head">
       <div class="table-title">&#x1F4CB; Ticket Details</div>
@@ -725,6 +736,75 @@ function updateSla(data) {
             scales: {
                 x: { grid:{display:false}, title:{display:true,text:'Priority',color:'#8b949e',font:{size:11}} },
                 y: { grid:{color:'#30363d'}, min:0, max:100, ticks:{callback:function(v){ return v+'%'; }} }
+            }
+        }
+    });
+
+    // -- Team Performance --
+    var teamMap = {};
+    filteredData.forEach(function(t) {
+        var name = (t.team || 'Unassigned').trim() || 'Unassigned';
+        if (!teamMap[name]) teamMap[name] = { open:0, closed:0, days:0, dayCnt:0 };
+        if (t.isOpen) teamMap[name].open++; else teamMap[name].closed++;
+        if (t.days !== null) { teamMap[name].days += t.days; teamMap[name].dayCnt++; }
+    });
+    var teamNames = Object.keys(teamMap).sort(function(a,b){
+        return (teamMap[b].open + teamMap[b].closed) - (teamMap[a].open + teamMap[a].closed);
+    });
+    var tOpen   = teamNames.map(function(n){ return teamMap[n].open; });
+    var tClosed = teamNames.map(function(n){ return teamMap[n].closed; });
+    var tAvg    = teamNames.map(function(n){ var m=teamMap[n]; return m.dayCnt ? +(m.days/m.dayCnt).toFixed(1) : 0; });
+
+    // Sort resolution chart by avg days ascending (best first)
+    var resOrder = teamNames.map(function(n,i){ return i; }).sort(function(a,b){ return tAvg[a]-tAvg[b]; });
+    var resLabels = resOrder.map(function(i){ return teamNames[i]; });
+    var resData   = resOrder.map(function(i){ return tAvg[i]; });
+
+    destroyChart('cTeamVol');
+    charts['cTeamVol'] = new Chart(document.getElementById('cTeamVol'), {
+        type: 'bar',
+        data: { labels: teamNames,
+            datasets: [
+                { label: 'Open',   data: tOpen,   backgroundColor: 'rgba(248,81,73,0.8)',   borderRadius: 4 },
+                { label: 'Closed', data: tClosed, backgroundColor: 'rgba(63,185,80,0.75)',  borderRadius: 4 }
+            ]
+        },
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+            plugins: {
+                legend:{ position:'top' },
+                datalabels:{ display:false },
+                tooltip:{ callbacks:{ label:function(c){ return ' '+c.dataset.label+': '+c.parsed.x; } } }
+            },
+            scales: {
+                x: { stacked:true, grid:{color:'#30363d'}, ticks:{precision:0} },
+                y: { stacked:true, grid:{display:false}, ticks:{font:{size:11}} }
+            }
+        }
+    });
+
+    destroyChart('cTeamRes');
+    charts['cTeamRes'] = new Chart(document.getElementById('cTeamRes'), {
+        type: 'bar',
+        plugins: [ChartDataLabels],
+        data: { labels: resLabels,
+            datasets: [{
+                label: 'Avg Days',
+                data: resData,
+                backgroundColor: resData.map(function(v){
+                    return v <= 7 ? 'rgba(63,185,80,0.85)' : v <= 30 ? 'rgba(240,136,62,0.85)' : 'rgba(248,81,73,0.85)';
+                }),
+                borderRadius: 4
+            }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+            plugins: {
+                legend:{ display:false },
+                datalabels:{ anchor:'end', align:'end', color:'#cdd9e5', font:{size:10,weight:'bold'}, formatter:function(v){ return v > 0 ? v+'d' : '-'; } },
+                tooltip:{ callbacks:{ label:function(c){ return ' Avg resolution: '+c.parsed.x+'d'; } } }
+            },
+            scales: {
+                x: { grid:{color:'#30363d'}, ticks:{callback:function(v){ return v+'d'; }}, beginAtZero:true },
+                y: { grid:{display:false}, ticks:{font:{size:11}} }
             }
         }
     });
