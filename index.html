@@ -245,6 +245,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     <div class="stat-card"><div class="stat-icon ic-yellow">&#x26A1;</div><div><div class="stat-val" id="s-fast">-</div><div class="stat-label">Resolved &lt; 7 days</div><div class="stat-sub" id="s-fast-sub"></div></div></div>
     <div class="stat-card"><div class="stat-icon ic-purple">&#x1F4CA;</div><div><div class="stat-val" id="s-med">-</div><div class="stat-label">Median Resolution</div><div class="stat-sub">50th percentile</div></div></div>
     <div class="stat-card"><div class="stat-icon ic-orange">&#x21A9;</div><div><div class="stat-val" id="s-reopened">-</div><div class="stat-label">Reopened</div><div class="stat-sub" id="s-reopened-sub">tickets reopened</div></div></div>
+    <div class="stat-card"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;5 days</div></div></div>
   </div>
 
   <div class="charts-row r3">
@@ -311,6 +312,19 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     <div class="chart-card">
       <div class="chart-title"><span class="dot" style="background:var(--orange)"></span>Team Avg Resolution Time (days)</div>
       <div class="chart-wrap" style="min-height:260px"><canvas id="cTeamRes"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row r2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot" style="background:var(--green)"></span>SLA On-Time % per Team <span style="font-weight:400;color:var(--muted);font-size:0.72rem;text-transform:none;letter-spacing:0">&nbsp;&#8212; target: 5 days</span></div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">% of closed tickets resolved within 5 days &mdash; sorted best to worst</div>
+      <div class="chart-wrap" style="min-height:300px"><canvas id="cTeamSla"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="dot" style="background:var(--blue)"></span>SLA Detail per Team</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">On-time vs overdue count (closed tickets only)</div>
+      <div class="chart-wrap" style="min-height:300px"><canvas id="cTeamSlaStack"></canvas></div>
     </div>
   </div>
 
@@ -522,6 +536,10 @@ function updateStats() {
     var reopenedTotal = filteredData.filter(function(t) { return t.reopened; }).length;
     document.getElementById('s-reopened').textContent     = reopenedOpen;
     document.getElementById('s-reopened-sub').textContent = reopenedTotal > reopenedOpen ? reopenedOpen + ' open · ' + reopenedTotal + ' total ever' : (reopenedOpen ? 'currently open' : 'none');
+    var slaClosed = filteredData.filter(function(t){ return !t.isOpen && t.days !== null; });
+    var slaOnTime = slaClosed.filter(function(t){ return t.days <= 5; }).length;
+    document.getElementById('s-sla').textContent = slaClosed.length ? (slaOnTime / slaClosed.length * 100).toFixed(1) + '%' : '-';
+    document.getElementById('s-sla-sub').textContent = slaClosed.length ? slaOnTime + ' / ' + slaClosed.length + ' resolved' : 'closed ≤5 days';
 }
 
 // -- Chart helpers --
@@ -756,9 +774,9 @@ function updateSla(data) {
     var teamMap = {};
     filteredData.forEach(function(t) {
         var name = (t.team || 'Unassigned').trim() || 'Unassigned';
-        if (!teamMap[name]) teamMap[name] = { open:0, closed:0, days:0, dayCnt:0 };
+        if (!teamMap[name]) teamMap[name] = { open:0, closed:0, days:0, dayCnt:0, onTime:0 };
         if (t.isOpen) teamMap[name].open++; else teamMap[name].closed++;
-        if (t.days !== null) { teamMap[name].days += t.days; teamMap[name].dayCnt++; }
+        if (t.days !== null) { teamMap[name].days += t.days; teamMap[name].dayCnt++; if (t.days <= 5) teamMap[name].onTime++; }
     });
     var teamNames = Object.keys(teamMap).sort(function(a,b){
         return (teamMap[b].open + teamMap[b].closed) - (teamMap[a].open + teamMap[a].closed);
@@ -817,6 +835,61 @@ function updateSla(data) {
             scales: {
                 x: { grid:{color:'#30363d'}, ticks:{callback:function(v){ return v+'d'; }}, beginAtZero:true },
                 y: { grid:{display:false}, ticks:{font:{size:11}} }
+            }
+        }
+    });
+
+    // -- SLA On-Time % per Team --
+    var slaTeams = teamNames.filter(function(n){ return teamMap[n].dayCnt > 0; });
+    slaTeams.sort(function(a,b){
+        var pa = teamMap[a].dayCnt ? teamMap[a].onTime/teamMap[a].dayCnt : 0;
+        var pb = teamMap[b].dayCnt ? teamMap[b].onTime/teamMap[b].dayCnt : 0;
+        return pa - pb;
+    });
+    var slaPctData = slaTeams.map(function(n){
+        var m = teamMap[n]; return m.dayCnt ? +(m.onTime/m.dayCnt*100).toFixed(1) : 0;
+    });
+    destroyChart('cTeamSla');
+    charts['cTeamSla'] = new Chart(document.getElementById('cTeamSla'), {
+        type: 'bar',
+        plugins: [ChartDataLabels],
+        data: { labels: slaTeams, datasets: [{
+            label: 'On-Time %',
+            data: slaPctData,
+            backgroundColor: slaPctData.map(function(v){ return v >= 70 ? 'rgba(63,185,80,0.85)' : v >= 40 ? 'rgba(240,136,62,0.85)' : 'rgba(248,81,73,0.85)'; }),
+            borderRadius: 4
+        }]},
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+            plugins: {
+                legend:{ display:false },
+                datalabels:{ anchor:'end', align:'end', color:'#cdd9e5', font:{size:10,weight:'bold'}, formatter:function(v){ return v > 0 ? v+'%' : '-'; } },
+                tooltip:{ callbacks:{ label:function(c){ var n=c.label; var m=teamMap[n]; return [' On-time: '+c.parsed.x+'%', ' ('+m.onTime+' of '+m.dayCnt+' resolved)']; } } }
+            },
+            scales: {
+                x: { grid:{color:'#30363d'}, min:0, max:100, ticks:{callback:function(v){ return v+'%'; }} },
+                y: { grid:{display:false}, ticks:{font:{size:11}} }
+            }
+        }
+    });
+
+    var slaStack = teamNames.filter(function(n){ return teamMap[n].dayCnt > 0; });
+    slaStack.sort(function(a,b){ return (teamMap[b].onTime+teamMap[b].dayCnt) - (teamMap[a].onTime+teamMap[a].dayCnt); });
+    destroyChart('cTeamSlaStack');
+    charts['cTeamSlaStack'] = new Chart(document.getElementById('cTeamSlaStack'), {
+        type: 'bar',
+        data: { labels: slaStack, datasets: [
+            { label:'On-Time (≤5d)', data: slaStack.map(function(n){ return teamMap[n].onTime; }), backgroundColor:'rgba(63,185,80,0.85)', borderRadius:4 },
+            { label:'Overdue (>5d)', data: slaStack.map(function(n){ return teamMap[n].dayCnt - teamMap[n].onTime; }), backgroundColor:'rgba(248,81,73,0.75)', borderRadius:4 }
+        ]},
+        options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+            plugins: {
+                legend:{ position:'top' },
+                datalabels:{ display:false },
+                tooltip:{ callbacks:{ label:function(c){ return ' '+c.dataset.label+': '+c.parsed.x; } } }
+            },
+            scales: {
+                x: { stacked:true, grid:{color:'#30363d'}, ticks:{precision:0} },
+                y: { stacked:true, grid:{display:false}, ticks:{font:{size:11}} }
             }
         }
     });
