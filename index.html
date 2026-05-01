@@ -245,7 +245,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     <div class="stat-card"><div class="stat-icon ic-yellow">&#x26A1;</div><div><div class="stat-val" id="s-fast">-</div><div class="stat-label">Resolved &lt; 7 days</div><div class="stat-sub" id="s-fast-sub"></div></div></div>
     <div class="stat-card"><div class="stat-icon ic-purple">&#x1F4CA;</div><div><div class="stat-val" id="s-med">-</div><div class="stat-label">Median Resolution</div><div class="stat-sub">50th percentile</div></div></div>
     <div class="stat-card"><div class="stat-icon ic-orange">&#x21A9;</div><div><div class="stat-val" id="s-reopened">-</div><div class="stat-label">Reopened</div><div class="stat-sub" id="s-reopened-sub">tickets reopened</div></div></div>
-    <div class="stat-card"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;5 days</div></div></div>
+    <div class="stat-card"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;14 days</div></div></div>
   </div>
 
   <div class="charts-row r3">
@@ -317,8 +317,8 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 
   <div class="charts-row r2" style="margin-bottom:20px">
     <div class="chart-card">
-      <div class="chart-title"><span class="dot" style="background:var(--green)"></span>SLA On-Time % per Team <span style="font-weight:400;color:var(--muted);font-size:0.72rem;text-transform:none;letter-spacing:0">&nbsp;&#8212; target: 5 days</span></div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">% of closed tickets resolved within 5 days &mdash; sorted best to worst</div>
+      <div class="chart-title"><span class="dot" style="background:var(--green)"></span>SLA On-Time % per Team <span style="font-weight:400;color:var(--muted);font-size:0.72rem;text-transform:none;letter-spacing:0">&nbsp;&#8212; target: 14 days</span></div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">% of closed tickets resolved within 14 days &mdash; sorted best to worst</div>
       <div class="chart-wrap" style="min-height:300px"><canvas id="cTeamSla"></canvas></div>
     </div>
     <div class="chart-card">
@@ -537,9 +537,9 @@ function updateStats() {
     document.getElementById('s-reopened').textContent     = reopenedOpen;
     document.getElementById('s-reopened-sub').textContent = reopenedTotal > reopenedOpen ? reopenedOpen + ' open · ' + reopenedTotal + ' total ever' : (reopenedOpen ? 'currently open' : 'none');
     var slaClosed = filteredData.filter(function(t){ return !t.isOpen && t.days !== null; });
-    var slaOnTime = slaClosed.filter(function(t){ return t.days <= 5; }).length;
+    var slaOnTime = slaClosed.filter(function(t){ return t.days <= 14; }).length;
     document.getElementById('s-sla').textContent = slaClosed.length ? (slaOnTime / slaClosed.length * 100).toFixed(1) + '%' : '-';
-    document.getElementById('s-sla-sub').textContent = slaClosed.length ? slaOnTime + ' / ' + slaClosed.length + ' resolved' : 'closed ≤5 days';
+    document.getElementById('s-sla-sub').textContent = slaClosed.length ? slaOnTime + ' / ' + slaClosed.length + ' resolved' : 'closed ≤14 days';
 }
 
 // -- Chart helpers --
@@ -776,7 +776,7 @@ function updateSla(data) {
         var name = (t.team || 'Unassigned').trim() || 'Unassigned';
         if (!teamMap[name]) teamMap[name] = { open:0, closed:0, days:0, dayCnt:0, onTime:0 };
         if (t.isOpen) teamMap[name].open++; else teamMap[name].closed++;
-        if (t.days !== null) { teamMap[name].days += t.days; teamMap[name].dayCnt++; if (t.days <= 5) teamMap[name].onTime++; }
+        if (t.days !== null) { teamMap[name].days += t.days; teamMap[name].dayCnt++; if (t.days <= 14) teamMap[name].onTime++; }
     });
     var teamNames = Object.keys(teamMap).sort(function(a,b){
         return (teamMap[b].open + teamMap[b].closed) - (teamMap[a].open + teamMap[a].closed);
@@ -878,8 +878,8 @@ function updateSla(data) {
     charts['cTeamSlaStack'] = new Chart(document.getElementById('cTeamSlaStack'), {
         type: 'bar',
         data: { labels: slaStack, datasets: [
-            { label:'On-Time (≤5d)', data: slaStack.map(function(n){ return teamMap[n].onTime; }), backgroundColor:'rgba(63,185,80,0.85)', borderRadius:4 },
-            { label:'Overdue (>5d)', data: slaStack.map(function(n){ return teamMap[n].dayCnt - teamMap[n].onTime; }), backgroundColor:'rgba(248,81,73,0.75)', borderRadius:4 }
+            { label:'On-Time (≤14d)', data: slaStack.map(function(n){ return teamMap[n].onTime; }), backgroundColor:'rgba(63,185,80,0.85)', borderRadius:4 },
+            { label:'Overdue (>14d)', data: slaStack.map(function(n){ return teamMap[n].dayCnt - teamMap[n].onTime; }), backgroundColor:'rgba(248,81,73,0.75)', borderRadius:4 }
         ]},
         options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
             plugins: {
