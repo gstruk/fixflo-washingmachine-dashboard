@@ -272,6 +272,15 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 }
 /* Address row */
 .addr-val{font-size:0.84rem;color:var(--text);font-weight:500}
+/* Google Maps button */
+.maps-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(66,133,244,0.1);border:1px solid rgba(66,133,244,0.35);
+  color:#4285f4;padding:4px 10px;border-radius:6px;font-size:0.75rem;
+  text-decoration:none;white-space:nowrap;font-weight:600;
+  transition:background 0.15s,box-shadow 0.15s;flex-shrink:0
+}
+.maps-btn:hover{background:rgba(66,133,244,0.22);box-shadow:0 2px 8px rgba(66,133,244,0.2)}
 /* People chips */
 .person-chip{
   display:inline-flex;align-items:center;gap:5px;
@@ -1139,10 +1148,22 @@ function toggleRow(tr, id) {
         '</div>' +
 
         // ── Full address ────────────────────────────────────────────
-        (t.addr ? '<div class="expand-full">' +
-            '<div class="expand-label">&#x1F4CD; Full Address</div>' +
-            '<div class="addr-val">' + t.addr + (t.postcode ? ' &nbsp;·&nbsp; <span style="color:var(--muted)">' + t.postcode + '</span>' : '') + '</div>' +
-        '</div>' : '') +
+        (function(){
+            if (!t.addr && !t.postcode) return '';
+            var q = encodeURIComponent((t.addr ? t.addr + ' ' : '') + (t.postcode || ''));
+            var mapsBtn = t.postcode
+                ? '<a href="https://www.google.com/maps/search/?api=1&query=' + q + '" target="_blank" rel="noopener" class="maps-btn" title="Open ' + t.postcode + ' in Google Maps">' +
+                  '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>' +
+                  t.postcode + '</a>'
+                : '';
+            return '<div class="expand-full">' +
+                '<div class="expand-label">&#x1F4CD; Full Address</div>' +
+                '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:3px">' +
+                    '<span class="addr-val">' + (t.addr || '') + '</span>' +
+                    mapsBtn +
+                '</div>' +
+            '</div>';
+        })() +
 
         // ── Fault description ───────────────────────────────────────
         (t.fault_detail ? '<div class="expand-full">' +
