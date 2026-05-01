@@ -524,6 +524,14 @@ var sortDir = 'desc';
 
 var TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
+function fmtCustomer(name) {
+    if (!name) return '—';
+    var parts = name.trim().split(/\s+/);
+    if (parts.length < 2) return name;
+    var last = parts[parts.length - 1];
+    return parts.slice(0, parts.length - 1).join(' ') + ' ' + last[0].toUpperCase() + '.';
+}
+
 function effDays(t) {
     if (t.days !== null) return t.days;
     return t.rd ? Math.round((TODAY - new Date(t.rd)) / 86400000) : 0;
@@ -1166,7 +1174,7 @@ function toggleRow(tr, id) {
 
         // ── People ──────────────────────────────────────────────────
         (t.agent ? '<div><div class="expand-label">&#x1F464; Agent</div><div class="expand-val"><span class="person-chip">&#x1F4BC; ' + t.agent + '</span></div></div>' : '') +
-        (t.tenant ? '<div><div class="expand-label">&#x1F464; Tenant</div><div class="expand-val"><span class="person-chip">&#x1F3E0; ' + t.tenant + '</span></div></div>' : '') +
+        '<div><div class="expand-label">&#x1F464; Customer</div><div class="expand-val"><span class="person-chip">&#x1F3E0; ' + fmtCustomer(t.tenant) + '</span></div></div>' +
         (t.contractor ? '<div><div class="expand-label">&#x1F527; Contractor</div><div class="expand-val"><span class="person-chip">&#x1F6E0; ' + t.contractor + '</span></div></div>' : '') +
 
         // ── Flags & tags ────────────────────────────────────────────
