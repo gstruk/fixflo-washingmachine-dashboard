@@ -377,7 +377,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
         <th class="sortable" onclick="setSort('priority')">Priority <span id="sh-priority" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('status')">Status <span id="sh-status" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('team')">Assigned Team <span id="sh-team" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('dwt')" title="Days from Raised to Closed (or Today for open)">Days w/ Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('dwt')" title="How long this ticket has been with its current team. Tracking started 01 May 2026.">Days with Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
       </tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
@@ -1006,7 +1006,7 @@ function toggleRow(tr, id) {
         (function(){
             var d = dwtDays(t);
             if (d === null) return '';
-            return '<div><div class="expand-label">Days w/ Current Team</div><div class="expand-val">' +
+            return '<div><div class="expand-label">Days with Team</div><div class="expand-val">' +
                 '<span class="' + (isOpenStat ? 'dwt-open' : 'dwt-closed') + '">' + d + 'd</span>' +
                 (t.team_since ? ' <span style="color:var(--muted);font-size:0.78rem">since ' +
                     (function(){ var p=t.team_since.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; })() +
@@ -1164,7 +1164,11 @@ function renderTable() {
             (function(){
                 var d = dwtDays(t);
                 if (d === null) return '<td><span style="color:var(--muted);font-size:0.72rem" title="Team history not yet tracked">—</span></td>';
-                return '<td><span class="' + (isOpenStat ? 'dwt-open' : 'dwt-closed') + '" title="With ' + (t.team||'team') + ' since ' + (t.team_since||'?') + '">' + d + 'd</span></td>';
+                var sinceLabel = t.team_since ? (function(){ var p=t.team_since.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); })() : null;
+                return '<td><div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">' +
+                    '<span class="' + (isOpenStat ? 'dwt-open' : 'dwt-closed') + '" title="With ' + (t.team||'team') + ' since ' + (t.team_since||'?') + '">' + d + 'd</span>' +
+                    (sinceLabel ? '<span style="color:var(--muted);font-size:0.66rem;line-height:1;padding-left:2px">since ' + sinceLabel + '</span>' : '') +
+                    '</div></td>';
             })() +
             '</tr>';
     }).join('');
