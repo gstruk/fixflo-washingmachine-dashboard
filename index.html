@@ -331,6 +331,63 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     <div class="stat-card sc-green"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;14 days</div></div></div>
   </div>
 
+  <div class="table-card" style="margin-bottom:20px">
+    <div class="table-head">
+      <div class="table-title">&#x1F4CB; Ticket Details <span class="tbl-count-badge" id="tblCountBadge">—</span></div>
+      <input class="search-box" type="text" id="tableSearch" placeholder="Search ID, property, issue..." oninput="renderTable()">
+    </div>
+    <div class="tbl-filters">
+      <label>Open / Closed
+        <select id="tblOpenSel" onchange="renderTable()">
+          <option value="">All</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+          <option value="reopened">&#x21A9; Reopened</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="tblStatusSel" onchange="renderTable()">
+          <option value="">All Statuses</option>
+        </select>
+      </label>
+      <button class="tbl-reset-btn" onclick="resetTableFilters()">&#x2715; Clear</button>
+    </div>
+    <table id="ticketTable">
+      <colgroup>
+        <col style="width:122px"><!-- ID -->
+        <col><!-- Issue – takes remaining space -->
+        <col style="width:175px"><!-- Property -->
+        <col style="width:86px"><!-- Eircode -->
+        <col style="width:96px"><!-- Raised -->
+        <col class="col-closed" style="width:96px"><!-- Closed -->
+        <col style="width:76px"><!-- Days Open -->
+        <col style="width:66px"><!-- Priority -->
+        <col style="width:92px"><!-- Status -->
+        <col style="width:145px"><!-- Assigned Team -->
+        <col style="width:90px"><!-- Days With Team -->
+      </colgroup>
+      <thead><tr>
+        <th class="sortable" onclick="setSort('id')">ID <span id="sh-id" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('title')">Issue <span id="sh-title" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('prop')">Property <span id="sh-prop" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('postcode')">Eircode <span id="sh-postcode" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('rd')">Raised <span id="sh-rd" class="sort-icon">&#8595;</span></th>
+        <th class="sortable col-closed" onclick="setSort('cd')">Closed <span id="sh-cd" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('daysOpen')">Days Open <span id="sh-daysOpen" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('priority')">Priority <span id="sh-priority" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('status')">Status <span id="sh-status" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('team')">Assigned Team <span id="sh-team" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('dwt')" title="How long this ticket has been with its current team. Tracking started 01 May 2026.">Days with Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="pagination">
+      <button id="prevBtn" onclick="changePage(-1)">&#8592; Prev</button>
+      <span id="pageInfo"></span>
+      <button id="nextBtn" onclick="changePage(1)">Next &#8594;</button>
+    </div>
+  </div>
+
   <div class="charts-row r3">
     <div class="chart-card">
       <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Total Tickets per Month</div>
@@ -411,62 +468,6 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     </div>
   </div>
 
-  <div class="table-card">
-    <div class="table-head">
-      <div class="table-title">&#x1F4CB; Ticket Details <span class="tbl-count-badge" id="tblCountBadge">—</span></div>
-      <input class="search-box" type="text" id="tableSearch" placeholder="Search ID, property, issue..." oninput="renderTable()">
-    </div>
-    <div class="tbl-filters">
-      <label>Open / Closed
-        <select id="tblOpenSel" onchange="renderTable()">
-          <option value="">All</option>
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-          <option value="reopened">&#x21A9; Reopened</option>
-        </select>
-      </label>
-      <label>Status
-        <select id="tblStatusSel" onchange="renderTable()">
-          <option value="">All Statuses</option>
-        </select>
-      </label>
-      <button class="tbl-reset-btn" onclick="resetTableFilters()">&#x2715; Clear</button>
-    </div>
-    <table id="ticketTable">
-      <colgroup>
-        <col style="width:122px"><!-- ID -->
-        <col><!-- Issue – takes remaining space -->
-        <col style="width:175px"><!-- Property -->
-        <col style="width:86px"><!-- Eircode -->
-        <col style="width:96px"><!-- Raised -->
-        <col class="col-closed" style="width:96px"><!-- Closed -->
-        <col style="width:76px"><!-- Days Open -->
-        <col style="width:66px"><!-- Priority -->
-        <col style="width:92px"><!-- Status -->
-        <col style="width:145px"><!-- Assigned Team -->
-        <col style="width:90px"><!-- Days With Team -->
-      </colgroup>
-      <thead><tr>
-        <th class="sortable" onclick="setSort('id')">ID <span id="sh-id" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('title')">Issue <span id="sh-title" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('prop')">Property <span id="sh-prop" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('postcode')">Eircode <span id="sh-postcode" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('rd')">Raised <span id="sh-rd" class="sort-icon">&#8595;</span></th>
-        <th class="sortable col-closed" onclick="setSort('cd')">Closed <span id="sh-cd" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('daysOpen')">Days Open <span id="sh-daysOpen" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('priority')">Priority <span id="sh-priority" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('status')">Status <span id="sh-status" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('team')">Assigned Team <span id="sh-team" class="sort-icon">&#8597;</span></th>
-        <th class="sortable" onclick="setSort('dwt')" title="How long this ticket has been with its current team. Tracking started 01 May 2026.">Days with Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
-      </tr></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="pagination">
-      <button id="prevBtn" onclick="changePage(-1)">&#8592; Prev</button>
-      <span id="pageInfo"></span>
-      <button id="nextBtn" onclick="changePage(1)">Next &#8594;</button>
-    </div>
-  </div>
 </main>
 <footer>Fixflo Export &middot; Leevin Home &middot; 2026-04-28 18:03:04 &middot; 1608 total records</footer>
 
