@@ -127,6 +127,9 @@ tr:hover td{background:var(--surface2)}
 .pri-chip{padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:600;white-space:nowrap}
 .days-fast{color:var(--green)}.days-med{color:var(--yellow)}.days-slow{color:var(--red)}
 .prop-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dwt-open{background:rgba(255,152,0,0.15);color:#FF9800;border:1px solid rgba(255,152,0,0.4);padding:2px 7px;border-radius:4px;font-weight:700;font-size:0.73rem;white-space:nowrap}
+.dwt-closed{background:rgba(117,117,117,0.15);color:#9e9e9e;border:1px solid rgba(117,117,117,0.35);padding:2px 7px;border-radius:4px;font-weight:700;font-size:0.73rem;white-space:nowrap}
+.tbl-hide-closed .col-closed{display:none}
 .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0 4px;font-size:0.82rem;color:var(--muted)}
 .pagination button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
 .pagination button:disabled{opacity:0.35;cursor:default}
@@ -356,11 +359,12 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
         <col style="width:175px"><!-- Property -->
         <col style="width:86px"><!-- Eircode -->
         <col style="width:96px"><!-- Raised -->
-        <col style="width:96px"><!-- Closed -->
+        <col class="col-closed" style="width:96px"><!-- Closed -->
         <col style="width:76px"><!-- Days Open -->
         <col style="width:66px"><!-- Priority -->
         <col style="width:92px"><!-- Status -->
-        <col style="width:155px"><!-- Assigned Team -->
+        <col style="width:145px"><!-- Assigned Team -->
+        <col style="width:90px"><!-- Days With Team -->
       </colgroup>
       <thead><tr>
         <th class="sortable" onclick="setSort('id')">ID <span id="sh-id" class="sort-icon">&#8597;</span></th>
@@ -368,11 +372,12 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
         <th class="sortable" onclick="setSort('prop')">Property <span id="sh-prop" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('postcode')">Eircode <span id="sh-postcode" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('rd')">Raised <span id="sh-rd" class="sort-icon">&#8595;</span></th>
-        <th class="sortable" onclick="setSort('cd')">Closed <span id="sh-cd" class="sort-icon">&#8597;</span></th>
+        <th class="sortable col-closed" onclick="setSort('cd')">Closed <span id="sh-cd" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('daysOpen')">Days Open <span id="sh-daysOpen" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('priority')">Priority <span id="sh-priority" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('status')">Status <span id="sh-status" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('team')">Assigned Team <span id="sh-team" class="sort-icon">&#8597;</span></th>
+        <th class="sortable" onclick="setSort('dwt')" title="Days from Raised to Closed (or Today for open)">Days w/ Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
       </tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
@@ -915,14 +920,14 @@ function setSort(col) {
         sortDir = sortDir === 'asc' ? 'desc' : 'asc';
     } else {
         sortCol = col;
-        sortDir = (col === 'rd' || col === 'cd' || col === 'days' || col === 'daysOpen') ? 'desc' : 'asc';
+        sortDir = (col === 'rd' || col === 'cd' || col === 'days' || col === 'daysOpen' || col === 'dwt') ? 'desc' : 'asc';
     }
     currentPage = 1;
     renderTable();
 }
 
 function updateSortIcons() {
-    var cols = ['id','title','prop','postcode','rd','cd','daysOpen','priority','status','team'];
+    var cols = ['id','title','prop','postcode','rd','cd','daysOpen','priority','status','team','dwt'];
     cols.forEach(function(col) {
         var el = document.getElementById('sh-' + col);
         if (!el) return;
@@ -994,8 +999,18 @@ function toggleRow(tr, id) {
     var detailRow = document.createElement('tr');
     detailRow.id = 'detail-row-' + id;
     detailRow.className = 'detail-row';
-    detailRow.innerHTML = '<td colspan="10">' + html + '</td>';
+    detailRow.innerHTML = '<td colspan="11">' + html + '</td>';
     tr.parentNode.insertBefore(detailRow, tr.nextSibling);
+}
+
+function updateColumnViz() {
+    var tblOpen = document.getElementById('tblOpenSel').value;
+    var table   = document.getElementById('ticketTable');
+    if (tblOpen === 'open') {
+        table.classList.add('tbl-hide-closed');
+    } else {
+        table.classList.remove('tbl-hide-closed');
+    }
 }
 
 function renderTable() {
@@ -1031,6 +1046,7 @@ function renderTable() {
         else if (sortCol === 'priority') { va = a.priority;     vb = b.priority; }
         else if (sortCol === 'status')   { va = a.status;       vb = b.status; }
         else if (sortCol === 'team')     { va = a.team || '';   vb = b.team || ''; }
+        else if (sortCol === 'dwt')      { va = effDays(a);     vb = effDays(b); }
         else return 0;
         var cmp = (typeof va === 'number') ? (va - vb) : (va < vb ? -1 : va > vb ? 1 : 0);
         return sortDir === 'asc' ? cmp : -cmp;
@@ -1099,17 +1115,19 @@ function renderTable() {
             '<td class="prop-cell" title="' + t.prop + '">' + shortProp(t.prop) + '</td>' +
             '<td style="white-space:nowrap;font-size:0.8rem;color:var(--muted)">' + (t.postcode || '-') + '</td>' +
             '<td style="white-space:nowrap">' + fmtDate(t.rd) + '</td>' +
-            '<td style="white-space:nowrap">' + closedDateCell + '</td>' +
+            '<td class="col-closed" style="white-space:nowrap">' + closedDateCell + '</td>' +
             '<td>' + daysOpenCell + '</td>' +
             '<td>' + priChip(t.priority) + '</td>' +
             '<td>' + statusChip(t.status) + (t.reopened ? ' <span class="s-reopened status-chip" style="font-size:0.65rem;padding:1px 6px">&#x21A9;</span>' : '') + '</td>' +
             '<td style="font-size:0.78rem;white-space:nowrap;color:var(--muted)">' + (t.team || '<span style="opacity:0.4">—</span>') + '</td>' +
+            '<td><span class="' + (isOpenStat ? 'dwt-open' : 'dwt-closed') + '">' + effDays(t) + 'd</span></td>' +
             '</tr>';
     }).join('');
 
     document.getElementById('pageInfo').textContent = 'Page ' + currentPage + ' of ' + totalPages + ' (' + total.toLocaleString() + ' records)';
     document.getElementById('prevBtn').disabled = currentPage <= 1;
     document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+    updateColumnViz();
 }
 
 function changePage(dir) {
