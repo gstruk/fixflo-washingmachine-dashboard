@@ -667,7 +667,7 @@ function msToggle(id) {
         w.classList.remove('ms-open');
         w.querySelector('.ms-drop').style.display = 'none';
     });
-    if (!isOpen) { wrap.classList.add('ms-open'); drop.style.display = ''; }
+    if (!isOpen) { wrap.classList.add('ms-open'); drop.style.display = 'block'; }
 }
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.ms-wrap')) {
