@@ -33,11 +33,28 @@ header p{color:var(--muted);font-size:0.8rem;margin-top:2px}
   padding:14px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap
 }
 .filters label{color:var(--muted);font-size:0.82rem;font-weight:500;display:flex;align-items:center;gap:6px}
-.filters select{
+.ms-wrap{position:relative;display:inline-block}
+.ms-btn{
   background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:6px 10px;border-radius:7px;font-size:0.84rem;cursor:pointer;outline:none
+  padding:6px 10px;border-radius:7px;font-size:0.84rem;cursor:pointer;outline:none;
+  display:flex;align-items:center;gap:6px;white-space:nowrap
 }
-.filters select:focus{border-color:var(--accent)}
+.ms-btn:hover{border-color:var(--accent)}
+.ms-arrow{font-size:0.7rem;opacity:0.55;transition:transform 0.15s}
+.ms-wrap.ms-open .ms-arrow{transform:rotate(180deg)}
+.ms-label{overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.ms-drop{
+  position:absolute;top:calc(100% + 4px);left:0;z-index:300;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:6px 0;min-width:160px;max-height:260px;overflow-y:auto;
+  box-shadow:0 8px 28px rgba(0,0,0,0.5);display:none
+}
+.ms-opt{
+  display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;
+  font-size:0.84rem;color:var(--text);transition:background 0.1s
+}
+.ms-opt:hover{background:rgba(255,255,255,0.07)}
+.ms-opt input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0}
 .filter-tag{
   background:rgba(124,106,247,0.15);border:1px solid rgba(124,106,247,0.35);
   color:var(--accent);padding:4px 10px;border-radius:20px;font-size:0.78rem
@@ -150,11 +167,7 @@ tr.detail-row td{padding:0 8px 10px;border-bottom:1px solid rgba(48,54,61,0.5)}
   padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid var(--border)
 }
 .tbl-filters label{color:var(--muted);font-size:0.78rem;font-weight:500;display:flex;align-items:center;gap:5px}
-.tbl-filters select{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:5px 10px;border-radius:7px;font-size:0.82rem;cursor:pointer;outline:none
-}
-.tbl-filters select:focus{border-color:var(--accent)}
+.tbl-filters .ms-btn{padding:5px 10px;font-size:0.82rem}
 .tbl-reset-btn{
   background:transparent;border:1px solid var(--border);color:var(--muted);
   padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem
@@ -253,7 +266,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 }
 
 /* Focus rings — inputs & selects */
-.filters select:focus,.tbl-filters select:focus{
+.ms-btn:focus{
   border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,0.18)
 }
 .search-box:focus{
@@ -324,34 +337,50 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 
 <div class="filters">
   <label>&#x1F4C5; Year
-    <select id="yearSel" onchange="applyFilters()">
-      <option value="">All Years</option>
-      <option>2022</option><option>2023</option><option>2024</option>
-      <option>2025</option><option>2026</option>
-    </select>
+    <div class="ms-wrap" id="ms-year">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-year')"><span class="ms-label">All Years</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop">
+        <label class="ms-opt"><input type="checkbox" value="2022" onchange="applyFilters()"> 2022</label>
+        <label class="ms-opt"><input type="checkbox" value="2023" onchange="applyFilters()"> 2023</label>
+        <label class="ms-opt"><input type="checkbox" value="2024" onchange="applyFilters()"> 2024</label>
+        <label class="ms-opt"><input type="checkbox" value="2025" onchange="applyFilters()"> 2025</label>
+        <label class="ms-opt"><input type="checkbox" value="2026" onchange="applyFilters()"> 2026</label>
+      </div>
+    </div>
   </label>
   <label>&#x1F4C6; Month
-    <select id="monthSel" onchange="applyFilters()">
-      <option value="">All Months</option>
-      <option value="1">January</option><option value="2">February</option>
-      <option value="3">March</option><option value="4">April</option>
-      <option value="5">May</option><option value="6">June</option>
-      <option value="7">July</option><option value="8">August</option>
-      <option value="9">September</option><option value="10">October</option>
-      <option value="11">November</option><option value="12">December</option>
-    </select>
+    <div class="ms-wrap" id="ms-month">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-month')"><span class="ms-label">All Months</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop">
+        <label class="ms-opt"><input type="checkbox" value="1"  onchange="applyFilters()"> January</label>
+        <label class="ms-opt"><input type="checkbox" value="2"  onchange="applyFilters()"> February</label>
+        <label class="ms-opt"><input type="checkbox" value="3"  onchange="applyFilters()"> March</label>
+        <label class="ms-opt"><input type="checkbox" value="4"  onchange="applyFilters()"> April</label>
+        <label class="ms-opt"><input type="checkbox" value="5"  onchange="applyFilters()"> May</label>
+        <label class="ms-opt"><input type="checkbox" value="6"  onchange="applyFilters()"> June</label>
+        <label class="ms-opt"><input type="checkbox" value="7"  onchange="applyFilters()"> July</label>
+        <label class="ms-opt"><input type="checkbox" value="8"  onchange="applyFilters()"> August</label>
+        <label class="ms-opt"><input type="checkbox" value="9"  onchange="applyFilters()"> September</label>
+        <label class="ms-opt"><input type="checkbox" value="10" onchange="applyFilters()"> October</label>
+        <label class="ms-opt"><input type="checkbox" value="11" onchange="applyFilters()"> November</label>
+        <label class="ms-opt"><input type="checkbox" value="12" onchange="applyFilters()"> December</label>
+      </div>
+    </div>
   </label>
   <label>Open / Closed
-    <select id="openSel" onchange="applyFilters()">
-      <option value="">All</option>
-      <option value="open" selected>Open</option>
-      <option value="closed">Closed</option>
-    </select>
+    <div class="ms-wrap" id="ms-open">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-open')"><span class="ms-label">Open</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop">
+        <label class="ms-opt"><input type="checkbox" value="open" checked onchange="applyFilters()"> Open</label>
+        <label class="ms-opt"><input type="checkbox" value="closed" onchange="applyFilters()"> Closed</label>
+      </div>
+    </div>
   </label>
   <label>Status
-    <select id="statusSel" onchange="applyFilters()">
-      <option value="">All Statuses</option>
-    </select>
+    <div class="ms-wrap" id="ms-status">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-status')"><span class="ms-label">All Statuses</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop" id="ms-status-drop"></div>
+    </div>
   </label>
   <button class="reset-btn" onclick="resetFilters()">&#x2715; Reset</button>
 </div>
@@ -375,17 +404,20 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     </div>
     <div class="tbl-filters">
       <label>Open / Closed
-        <select id="tblOpenSel" onchange="renderTable()">
-          <option value="">All</option>
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-          <option value="reopened">&#x21A9; Reopened</option>
-        </select>
+        <div class="ms-wrap" id="ms-tbl-open">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-open')"><span class="ms-label">All</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop">
+            <label class="ms-opt"><input type="checkbox" value="open"     onchange="renderTable()"> Open</label>
+            <label class="ms-opt"><input type="checkbox" value="closed"   onchange="renderTable()"> Closed</label>
+            <label class="ms-opt"><input type="checkbox" value="reopened" onchange="renderTable()"> &#x21A9; Reopened</label>
+          </div>
+        </div>
       </label>
       <label>Status
-        <select id="tblStatusSel" onchange="renderTable()">
-          <option value="">All Statuses</option>
-        </select>
+        <div class="ms-wrap" id="ms-tbl-status">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-status')"><span class="ms-label">All Statuses</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop" id="ms-tbl-status-drop"></div>
+        </div>
       </label>
       <button class="tbl-reset-btn" onclick="resetTableFilters()">&#x2715; Clear</button>
     </div>
@@ -621,39 +653,77 @@ function statusChip(s) {
     return '<span class="status-chip s-other">' + s + '</span>';
 }
 
+// -- Multi-select helpers --
+function msGetVals(id) {
+    var el = document.getElementById(id);
+    if (!el) return [];
+    return Array.prototype.slice.call(el.querySelectorAll('input:checked')).map(function(c){ return c.value; });
+}
+function msToggle(id) {
+    var wrap = document.getElementById(id);
+    var drop = wrap.querySelector('.ms-drop');
+    var isOpen = wrap.classList.contains('ms-open');
+    document.querySelectorAll('.ms-wrap.ms-open').forEach(function(w){
+        w.classList.remove('ms-open');
+        w.querySelector('.ms-drop').style.display = 'none';
+    });
+    if (!isOpen) { wrap.classList.add('ms-open'); drop.style.display = ''; }
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.ms-wrap')) {
+        document.querySelectorAll('.ms-wrap.ms-open').forEach(function(w){
+            w.classList.remove('ms-open');
+            w.querySelector('.ms-drop').style.display = 'none';
+        });
+    }
+});
+function msUpdateLabel(id, allLabel, namesMap) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var vals = msGetVals(id);
+    var label = vals.length
+        ? vals.map(function(v){ return namesMap ? (namesMap[v] || v) : v; }).join(', ')
+        : allLabel;
+    el.querySelector('.ms-label').textContent = label;
+}
 // -- Filters --
 function getFilters() {
     return {
-        year:       parseInt(document.getElementById('yearSel').value)  || null,
-        month:      parseInt(document.getElementById('monthSel').value) || null,
-        openFilter: document.getElementById('openSel').value   || null,
-        status:     document.getElementById('statusSel').value || null
+        years:      msGetVals('ms-year').map(Number),
+        months:     msGetVals('ms-month').map(Number),
+        openFilter: msGetVals('ms-open'),
+        statuses:   msGetVals('ms-status')
     };
 }
 
 function applyFilters() {
     var f = getFilters();
+    var MONTH_SHORT = {1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'};
     filteredData = RAW.filter(function(t) {
         if (t.ry === 0) return false;
-        if (f.year  && t.ry !== f.year)  return false;
-        if (f.month && t.rm !== f.month) return false;
-        if (f.openFilter === 'open'   && !(t.isOpen || t.status !== 'Closed')) return false;
-        if (f.openFilter === 'closed' &&  (t.isOpen || t.status !== 'Closed')) return false;
-        if (f.status && t.status !== f.status) return false;
+        if (f.years.length  && f.years.indexOf(t.ry)   === -1) return false;
+        if (f.months.length && f.months.indexOf(t.rm)  === -1) return false;
+        if (f.openFilter.length) {
+            var pass = false;
+            if (f.openFilter.indexOf('open')   !== -1 && (t.isOpen || t.status !== 'Closed'))  pass = true;
+            if (f.openFilter.indexOf('closed') !== -1 && (!t.isOpen && t.status === 'Closed')) pass = true;
+            if (!pass) return false;
+        }
+        if (f.statuses.length && f.statuses.indexOf(t.status) === -1) return false;
         return true;
     });
+    msUpdateLabel('ms-year',   'All Years');
+    msUpdateLabel('ms-month',  'All Months', MONTH_SHORT);
+    msUpdateLabel('ms-open',   'All', {open:'Open', closed:'Closed'});
+    msUpdateLabel('ms-status', 'All Statuses');
     var tag = document.getElementById('filterTag');
-    if (f.year || f.month || f.openFilter || f.status) {
-        var parts = [];
-        if (f.year)       parts.push(String(f.year));
-        if (f.month)      parts.push(MONTH_NAMES[f.month - 1]);
-        if (f.openFilter) parts.push(f.openFilter === 'open' ? 'Open' : 'Closed');
-        if (f.status)     parts.push(f.status);
-        tag.textContent = parts.join(' Â· ');
-        tag.style.display = '';
-    } else {
-        tag.style.display = 'none';
-    }
+    var parts = [];
+    if (f.years.length)      parts = parts.concat(f.years.map(String));
+    if (f.months.length)     parts = parts.concat(f.months.map(function(m){ return MONTH_SHORT[m]; }));
+    if (f.openFilter.length) parts = parts.concat(f.openFilter.map(function(v){ return v === 'open' ? 'Open' : 'Closed'; }));
+    if (f.statuses.length)   parts = parts.concat(f.statuses);
+    if (parts.length) { tag.textContent = parts.join(' · '); tag.style.display = ''; }
+    else              { tag.style.display = 'none'; }
     updateStats();
     updateCharts();
     currentPage = 1;
@@ -662,16 +732,18 @@ function applyFilters() {
 }
 
 function resetFilters() {
-    document.getElementById('yearSel').value   = '';
-    document.getElementById('monthSel').value  = '';
-    document.getElementById('openSel').value   = '';
-    document.getElementById('statusSel').value = '';
+    ['ms-year','ms-month','ms-open','ms-status'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
+    });
     applyFilters();
 }
 
 function resetTableFilters() {
-    document.getElementById('tblOpenSel').value   = '';
-    document.getElementById('tblStatusSel').value = '';
+    ['ms-tbl-open','ms-tbl-status'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
+    });
     currentPage = 1;
     renderTable();
 }
@@ -1243,9 +1315,9 @@ function toggleRow(tr, id) {
 }
 
 function updateColumnViz() {
-    var tblOpen = document.getElementById('tblOpenSel').value;
-    var table   = document.getElementById('ticketTable');
-    if (tblOpen === 'open') {
+    var vals  = msGetVals('ms-tbl-open');
+    var table = document.getElementById('ticketTable');
+    if (vals.length === 1 && vals[0] === 'open') {
         table.classList.add('tbl-hide-closed');
     } else {
         table.classList.remove('tbl-hide-closed');
@@ -1254,14 +1326,21 @@ function updateColumnViz() {
 
 function renderTable() {
     var q         = document.getElementById('tableSearch').value.toLowerCase();
-    var tblOpen   = document.getElementById('tblOpenSel').value;
-    var tblStatus = document.getElementById('tblStatusSel').value;
+    var tblOpenVals   = msGetVals('ms-tbl-open');
+    var tblStatusVals = msGetVals('ms-tbl-status');
+    msUpdateLabel('ms-tbl-open',   'All', {open:'Open', closed:'Closed', reopened:'Reopened'});
+    msUpdateLabel('ms-tbl-status', 'All Statuses');
     var rows = tableData.slice();
 
-    if (tblOpen === 'open')     rows = rows.filter(function(t) { return t.isOpen || t.status !== 'Closed'; });
-    if (tblOpen === 'closed')   rows = rows.filter(function(t) { return !t.isOpen && t.status === 'Closed'; });
-    if (tblOpen === 'reopened') rows = rows.filter(function(t) { return t.reopened; });
-    if (tblStatus) rows = rows.filter(function(t) { return t.status === tblStatus; });
+    if (tblOpenVals.length) {
+        rows = rows.filter(function(t) {
+            if (tblOpenVals.indexOf('open')     !== -1 && (t.isOpen || t.status !== 'Closed'))  return true;
+            if (tblOpenVals.indexOf('closed')   !== -1 && (!t.isOpen && t.status === 'Closed')) return true;
+            if (tblOpenVals.indexOf('reopened') !== -1 && t.reopened) return true;
+            return false;
+        });
+    }
+    if (tblStatusVals.length) rows = rows.filter(function(t) { return tblStatusVals.indexOf(t.status) !== -1; });
 
     if (q) {
         rows = rows.filter(function(t) {
@@ -1389,10 +1468,14 @@ function populateStatusDropdowns() {
     var seen = {};
     RAW.forEach(function(t) { seen[t.status] = true; });
     var keys = Object.keys(seen).sort();
-    var opts = '<option value="">All Statuses</option>';
-    keys.forEach(function(s) { opts += '<option value="' + s + '">' + s + '</option>'; });
-    document.getElementById('statusSel').innerHTML    = opts;
-    document.getElementById('tblStatusSel').innerHTML = opts;
+    var html = keys.map(function(s) {
+        return '<label class="ms-opt"><input type="checkbox" value="' + s + '" onchange="applyFilters()"> ' + s + '</label>';
+    }).join('');
+    var tblHtml = keys.map(function(s) {
+        return '<label class="ms-opt"><input type="checkbox" value="' + s + '" onchange="renderTable()"> ' + s + '</label>';
+    }).join('');
+    document.getElementById('ms-status-drop').innerHTML     = html;
+    document.getElementById('ms-tbl-status-drop').innerHTML = tblHtml;
 }
 populateStatusDropdowns();
 applyFilters();
