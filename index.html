@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fixflo Washing Machine Dashboard - Leevin Home</title>
+<title>Fixflo Maintenance Dashboard - Leevin Home</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
@@ -338,6 +338,41 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 .header-user:hover{background:var(--border)}
 .header-user img{width:24px;height:24px;border-radius:50%;flex-shrink:0}
 .header-user .signout{font-size:0.72rem;opacity:0.5;margin-left:2px}
+
+/* ─── Appliance mini-cards ───────────────────────────────────── */
+.appliance-stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.app-mini-card{
+  flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;
+  gap:12px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s
+}
+.app-mini-card:hover{transform:translateY(-2px)}
+.app-wm {box-shadow:inset 3px 0 0 rgba(88,166,255,0.5)}
+.app-dry{box-shadow:inset 3px 0 0 rgba(139,148,158,0.5)}
+.app-hw {box-shadow:inset 3px 0 0 rgba(240,136,62,0.5)}
+.app-wm:hover {box-shadow:inset 3px 0 0 var(--blue),  0 8px 24px rgba(88,166,255,0.2)}
+.app-dry:hover{box-shadow:inset 3px 0 0 #8b949e,      0 8px 24px rgba(139,148,158,0.15)}
+.app-hw:hover {box-shadow:inset 3px 0 0 var(--orange),0 8px 24px rgba(240,136,62,0.2)}
+.app-mini-icon{font-size:1.6rem;flex-shrink:0}
+.app-mini-val{font-size:1.5rem;font-weight:700;line-height:1}
+.app-mini-label{color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px}
+.app-mini-sub{color:var(--muted);font-size:0.7rem;margin-top:3px}
+.app-wm .app-mini-val{color:var(--blue)}
+.app-dry .app-mini-val{color:#8b949e}
+.app-hw .app-mini-val{color:var(--orange)}
+
+/* ─── Quick date-range buttons ───────────────────────────────── */
+.quick-range-btns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.quick-range-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:5px 12px;border-radius:20px;cursor:pointer;font-size:0.78rem;
+  transition:all 0.15s;white-space:nowrap
+}
+.quick-range-btn:hover{border-color:var(--accent);color:var(--text)}
+.quick-range-btn.qr-active{
+  background:rgba(124,106,247,0.15);border-color:var(--accent);
+  color:var(--accent);font-weight:600
+}
 </style>
 </head>
 <body>
@@ -452,6 +487,11 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
       </div>
     </div>
   </label>
+  <div class="quick-range-btns">
+    <button class="quick-range-btn" onclick="setQuickRange(30,this)">Last 30 days</button>
+    <button class="quick-range-btn" onclick="setQuickRange(90,this)">Last 90 days</button>
+    <button class="quick-range-btn" onclick="setQuickRange('year',this)">This year</button>
+  </div>
   <button class="reset-btn" onclick="resetFilters()">&#x2715; Reset</button>
 </div>
 
@@ -465,6 +505,33 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
     <div class="stat-card sc-purple"><div class="stat-icon ic-purple">&#x1F4CA;</div><div><div class="stat-val" id="s-med">-</div><div class="stat-label">Median Resolution</div><div class="stat-sub">50th percentile</div></div></div>
     <div class="stat-card sc-orange"><div class="stat-icon ic-orange">&#x21A9;</div><div><div class="stat-val" id="s-reopened">-</div><div class="stat-label">Reopened</div><div class="stat-sub" id="s-reopened-sub">tickets reopened</div></div></div>
     <div class="stat-card sc-green"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;14 days</div></div></div>
+  </div>
+
+  <div class="appliance-stats">
+    <div class="app-mini-card app-wm" onclick="appQuickFilter('washing_machine')" title="Click to filter by Washing Machine">
+      <div class="app-mini-icon">🫧</div>
+      <div>
+        <div class="app-mini-val" id="app-open-washing_machine">-</div>
+        <div class="app-mini-label">Washing Machine open</div>
+        <div class="app-mini-sub"><span id="app-total-washing_machine">-</span> total in view</div>
+      </div>
+    </div>
+    <div class="app-mini-card app-dry" onclick="appQuickFilter('dryer')" title="Click to filter by Dryer">
+      <div class="app-mini-icon">🌀</div>
+      <div>
+        <div class="app-mini-val" id="app-open-dryer">-</div>
+        <div class="app-mini-label">Dryer open</div>
+        <div class="app-mini-sub"><span id="app-total-dryer">-</span> total in view</div>
+      </div>
+    </div>
+    <div class="app-mini-card app-hw" onclick="appQuickFilter('hot_water')" title="Click to filter by Hot Water">
+      <div class="app-mini-icon">🔥</div>
+      <div>
+        <div class="app-mini-val" id="app-open-hot_water">-</div>
+        <div class="app-mini-label">Hot Water open</div>
+        <div class="app-mini-sub"><span id="app-total-hot_water">-</span> total in view</div>
+      </div>
+    </div>
   </div>
 
   <div class="table-card" style="margin-bottom:20px">
@@ -633,6 +700,7 @@ var COPY_ICON  = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
 var CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 var sortCol = 'rd';
 var sortDir = 'desc';
+var quickRange = null;
 
 var TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
@@ -773,6 +841,16 @@ function applyFilters() {
     var MONTH_SHORT = {1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'};
     filteredData = RAW.filter(function(t) {
         if (t.ry === 0) return false;
+        if (quickRange !== null) {
+            var rdDate = t.rd ? new Date(t.rd) : null;
+            if (!rdDate) return false;
+            if (quickRange === 'year') {
+                if (rdDate.getFullYear() !== TODAY.getFullYear()) return false;
+            } else {
+                var cutoff = new Date(TODAY); cutoff.setDate(cutoff.getDate() - quickRange);
+                if (rdDate < cutoff) return false;
+            }
+        }
         if (f.years.length  && f.years.indexOf(t.ry)   === -1) return false;
         if (f.months.length && f.months.indexOf(t.rm)  === -1) return false;
         if (f.openFilter.length) {
@@ -793,6 +871,9 @@ function applyFilters() {
     msUpdateLabel('ms-appliance', 'All Types', APPLIANCE_LABELS);
     var tag = document.getElementById('filterTag');
     var parts = [];
+    if (quickRange === 30)      parts.push('Last 30 days');
+    else if (quickRange === 90) parts.push('Last 90 days');
+    else if (quickRange === 'year') parts.push('This year');
     if (f.years.length)      parts = parts.concat(f.years.map(String));
     if (f.months.length)     parts = parts.concat(f.months.map(function(m){ return MONTH_SHORT[m]; }));
     if (f.openFilter.length) parts = parts.concat(f.openFilter.map(function(v){ return v === 'open' ? 'Open' : 'Closed'; }));
@@ -808,10 +889,26 @@ function applyFilters() {
 }
 
 function resetFilters() {
+    quickRange = null;
+    document.querySelectorAll('.quick-range-btn').forEach(function(b){ b.classList.remove('qr-active'); });
     ['ms-year','ms-month','ms-open','ms-status','ms-appliance'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
     });
+    applyFilters();
+}
+
+function setQuickRange(val, btn) {
+    quickRange = quickRange === val ? null : val;
+    document.querySelectorAll('.quick-range-btn').forEach(function(b){ b.classList.remove('qr-active'); });
+    if (quickRange !== null) btn.classList.add('qr-active');
+    applyFilters();
+}
+
+function appQuickFilter(type) {
+    var drop = document.getElementById('ms-appliance');
+    if (!drop) return;
+    drop.querySelectorAll('input').forEach(function(c){ c.checked = c.value === type; });
     applyFilters();
 }
 
@@ -857,6 +954,15 @@ function updateStats() {
     document.getElementById('s-sla-sub').textContent = slaClosed.length
         ? slaSameDay + ' same day · ' + slaWithin + ' <14d · ' + slaOver + ' ≥14d'
         : 'closed <14 days';
+    // Appliance mini-cards
+    ['washing_machine','dryer','hot_water'].forEach(function(type) {
+        var subset = filteredData.filter(function(t){ return (t.appliance_type||'other') === type; });
+        var openC  = subset.filter(function(t){ return t.isOpen || t.status === 'Reported'; }).length;
+        var openEl = document.getElementById('app-open-' + type);
+        var totEl  = document.getElementById('app-total-' + type);
+        if (openEl) openEl.textContent = openC;
+        if (totEl)  totEl.textContent  = subset.length;
+    });
 }
 
 // -- Chart helpers --
@@ -1500,12 +1606,19 @@ function renderTable() {
             ' onclick="toggleRow(this,\'' + t.id + '\')"' +
             (rowStyle ? ' style="' + rowStyle + '"' : '');
 
+        var appBadge = (function() {
+            var at = t.appliance_type || 'other';
+            if (at === 'washing_machine') return '<span style="background:rgba(88,166,255,0.12);border:1px solid rgba(88,166,255,0.35);color:var(--blue);padding:1px 6px;border-radius:4px;font-size:0.68rem;font-weight:600;white-space:nowrap;vertical-align:middle;margin-right:5px">WM</span>';
+            if (at === 'dryer')           return '<span style="background:rgba(139,148,158,0.15);border:1px solid rgba(139,148,158,0.35);color:#8b949e;padding:1px 6px;border-radius:4px;font-size:0.68rem;font-weight:600;white-space:nowrap;vertical-align:middle;margin-right:5px">DRY</span>';
+            if (at === 'hot_water')       return '<span style="background:rgba(240,136,62,0.12);border:1px solid rgba(240,136,62,0.35);color:var(--orange);padding:1px 6px;border-radius:4px;font-size:0.68rem;font-weight:600;white-space:nowrap;vertical-align:middle;margin-right:5px">HW</span>';
+            return '';
+        })();
         return '<tr' + rowAttrs + '>' +
             '<td><div class="id-cell">' +
                 '<span class="badge">' + t.id + '</span>' +
                 '<button class="copy-btn" data-id="' + t.id + '" onclick="event.stopPropagation();doCopy(this)" title="Copy ID">' + COPY_ICON + '</button>' +
             '</div>' + reopenedBadge + '</td>' +
-            '<td title="' + t.title + '">' + shortTitle(t.title) + '</td>' +
+            '<td title="' + t.title + '">' + appBadge + shortTitle(t.title) + '</td>' +
             '<td class="prop-cell" title="' + t.prop + '">' + shortProp(t.prop) + '</td>' +
             '<td style="white-space:nowrap;font-size:0.8rem;color:var(--muted)">' + (t.postcode || '-') + '</td>' +
             '<td style="white-space:nowrap">' + fmtDate(t.rd) + '</td>' +
