@@ -441,6 +441,17 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
       <div class="ms-drop" id="ms-status-drop"></div>
     </div>
   </label>
+  <label>&#x1F527; Appliance
+    <div class="ms-wrap" id="ms-appliance">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-appliance')"><span class="ms-label">All Types</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop">
+        <label class="ms-opt"><input type="checkbox" value="washing_machine" onchange="applyFilters()"> Washing Machine</label>
+        <label class="ms-opt"><input type="checkbox" value="dryer" onchange="applyFilters()"> Dryer</label>
+        <label class="ms-opt"><input type="checkbox" value="hot_water" onchange="applyFilters()"> Hot Water</label>
+        <label class="ms-opt"><input type="checkbox" value="other" onchange="applyFilters()"> Other</label>
+      </div>
+    </div>
+  </label>
   <button class="reset-btn" onclick="resetFilters()">&#x2715; Reset</button>
 </div>
 
@@ -752,7 +763,8 @@ function getFilters() {
         years:      msGetVals('ms-year').map(Number),
         months:     msGetVals('ms-month').map(Number),
         openFilter: msGetVals('ms-open'),
-        statuses:   msGetVals('ms-status')
+        statuses:   msGetVals('ms-status'),
+        appliances: msGetVals('ms-appliance')
     };
 }
 
@@ -770,18 +782,22 @@ function applyFilters() {
             if (!pass) return false;
         }
         if (f.statuses.length && f.statuses.indexOf(t.status) === -1) return false;
+        if (f.appliances.length && f.appliances.indexOf(t.appliance_type || 'other') === -1) return false;
         return true;
     });
-    msUpdateLabel('ms-year',   'All Years');
-    msUpdateLabel('ms-month',  'All Months', MONTH_SHORT);
-    msUpdateLabel('ms-open',   'All', {open:'Open', closed:'Closed'});
-    msUpdateLabel('ms-status', 'All Statuses');
+    var APPLIANCE_LABELS = {washing_machine:'Washing Machine', dryer:'Dryer', hot_water:'Hot Water', other:'Other'};
+    msUpdateLabel('ms-year',      'All Years');
+    msUpdateLabel('ms-month',     'All Months', MONTH_SHORT);
+    msUpdateLabel('ms-open',      'All', {open:'Open', closed:'Closed'});
+    msUpdateLabel('ms-status',    'All Statuses');
+    msUpdateLabel('ms-appliance', 'All Types', APPLIANCE_LABELS);
     var tag = document.getElementById('filterTag');
     var parts = [];
     if (f.years.length)      parts = parts.concat(f.years.map(String));
     if (f.months.length)     parts = parts.concat(f.months.map(function(m){ return MONTH_SHORT[m]; }));
     if (f.openFilter.length) parts = parts.concat(f.openFilter.map(function(v){ return v === 'open' ? 'Open' : 'Closed'; }));
     if (f.statuses.length)   parts = parts.concat(f.statuses);
+    if (f.appliances.length) parts = parts.concat(f.appliances.map(function(v){ return APPLIANCE_LABELS[v] || v; }));
     if (parts.length) { tag.textContent = parts.join(' · '); tag.style.display = ''; }
     else              { tag.style.display = 'none'; }
     updateStats();
@@ -792,7 +808,7 @@ function applyFilters() {
 }
 
 function resetFilters() {
-    ['ms-year','ms-month','ms-open','ms-status'].forEach(function(id) {
+    ['ms-year','ms-month','ms-open','ms-status','ms-appliance'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
     });
