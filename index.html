@@ -1600,9 +1600,9 @@ function _logAccess(user) {
 
 function _detectApplianceType(title) {
     var t = (title || '').toLowerCase();
-    if (t.indexOf('hot water') !== -1) return 'hot_water';
-    if (t.indexOf('washing machine') !== -1 || t.indexOf('washer') !== -1) return 'washing_machine';
-    if (t.indexOf('dryer') !== -1 || t.indexOf('tumble dry') !== -1) return 'dryer';
+    if (t.indexOf('hot water') !== -1)      return 'hot_water';
+    if (t.indexOf('washing machine') !== -1) return 'washing_machine';
+    if (t.indexOf('dryer') !== -1)           return 'dryer';
     return 'other';
 }
 
