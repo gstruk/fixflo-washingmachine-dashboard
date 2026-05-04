@@ -373,7 +373,12 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
   background:rgba(124,106,247,0.15);border-color:var(--accent);
   color:var(--accent);font-weight:600
 }
-</style>
+.tbl-fg{display:flex;flex-direction:column;gap:3px}
+.tbl-fg>span{color:var(--muted);font-size:0.73rem;font-weight:500;white-space:nowrap}
+.tbl-pills{display:flex;gap:4px;flex-wrap:wrap}
+.tbl-pill{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:20px;cursor:pointer;font-size:0.75rem;transition:all 0.15s;white-space:nowrap;line-height:1.4}
+.tbl-pill:hover{border-color:var(--accent);color:var(--text)}
+.tbl-pill.tp-on{background:rgba(124,106,247,0.15);border-color:var(--accent);color:var(--accent);font-weight:600}</style>
 </head>
 <body>
 
@@ -540,7 +545,8 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
       <input class="search-box" type="text" id="tableSearch" placeholder="Search ID, property, issue..." oninput="renderTable()">
     </div>
     <div class="tbl-filters">
-      <label>Open / Closed
+      <div class="tbl-fg">
+        <span>Open / Closed</span>
         <div class="ms-wrap" id="ms-tbl-open">
           <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-open')"><span class="ms-label">All</span><span class="ms-arrow">&#9660;</span></button>
           <div class="ms-drop">
@@ -549,14 +555,65 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
             <label class="ms-opt"><input type="checkbox" value="reopened" onchange="renderTable()"> &#x21A9; Reopened</label>
           </div>
         </div>
-      </label>
-      <label>Status
+      </div>
+      <div class="tbl-fg">
+        <span>Issue</span>
+        <div class="ms-wrap" id="ms-tbl-appliance">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-appliance')"><span class="ms-label">All Types</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop">
+            <label class="ms-opt"><input type="checkbox" value="washing_machine" onchange="renderTable()"> 🫧 Washing Machine</label>
+            <label class="ms-opt"><input type="checkbox" value="dryer"           onchange="renderTable()"> 🌀 Dryer</label>
+            <label class="ms-opt"><input type="checkbox" value="hot_water"       onchange="renderTable()"> 🔥 Hot Water</label>
+            <label class="ms-opt"><input type="checkbox" value="other"           onchange="renderTable()"> Other</label>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-fg">
+        <span>City</span>
+        <div class="ms-wrap" id="ms-tbl-city">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-city')"><span class="ms-label">All Cities</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop">
+            <label class="ms-opt"><input type="checkbox" value="dublin"   onchange="renderTable()"> Dublin</label>
+            <label class="ms-opt"><input type="checkbox" value="cork"     onchange="renderTable()"> Cork</label>
+            <label class="ms-opt"><input type="checkbox" value="limerick" onchange="renderTable()"> Limerick</label>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-fg">
+        <span>Status</span>
         <div class="ms-wrap" id="ms-tbl-status">
           <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-status')"><span class="ms-label">All Statuses</span><span class="ms-arrow">&#9660;</span></button>
           <div class="ms-drop" id="ms-tbl-status-drop"></div>
         </div>
-      </label>
-      <button class="tbl-reset-btn" onclick="resetTableFilters()">&#x2715; Clear</button>
+      </div>
+      <div class="tbl-fg">
+        <span>Assigned Team</span>
+        <div class="ms-wrap" id="ms-tbl-team">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-team')"><span class="ms-label">All Teams</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop" id="ms-tbl-team-drop"></div>
+        </div>
+      </div>
+      <div class="tbl-fg">
+        <span>Priority</span>
+        <div class="tbl-pills" id="tbl-priority-pills">
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',0)">0</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',1)">1</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',2)">2</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',3)">3</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',4)">4</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'priority',5)">5</button>
+        </div>
+      </div>
+      <div class="tbl-fg">
+        <span>Days with Team</span>
+        <div class="tbl-pills" id="tbl-dwt-pills">
+          <button class="tbl-pill" onclick="tblPillToggle(this,'dwt','le7')">&#8804; 7 days</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'dwt','7-11')">7 &#8211; 11 days</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'dwt','12-15')">12 &#8211; 15 days</button>
+          <button class="tbl-pill" onclick="tblPillToggle(this,'dwt','gt15')">&gt; 15 days</button>
+        </div>
+      </div>
+      <button class="tbl-reset-btn" onclick="resetTableFilters()" style="align-self:flex-end">&#x2715; Clear all</button>
     </div>
     <table id="ticketTable">
       <colgroup>
@@ -701,6 +758,8 @@ var CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
 var sortCol = 'rd';
 var sortDir = 'desc';
 var quickRange = null;
+var tblPriorityActive = {};
+var tblDwtActive = null;
 
 var TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
@@ -913,9 +972,17 @@ function appQuickFilter(type) {
 }
 
 function resetTableFilters() {
-    ['ms-tbl-open','ms-tbl-status'].forEach(function(id) {
+    ['ms-tbl-open','ms-tbl-status','ms-tbl-appliance','ms-tbl-city','ms-tbl-team'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
+    });
+    tblPriorityActive = {};
+    document.querySelectorAll('#tbl-priority-pills .tbl-pill').forEach(function(b){ b.classList.remove('tp-on'); });
+    tblDwtActive = null;
+    document.querySelectorAll('#tbl-dwt-pills .tbl-pill').forEach(function(b){ b.classList.remove('tp-on'); });
+    currentPage = 1;
+    renderTable();
+});
     });
     currentPage = 1;
     renderTable();
@@ -1510,8 +1577,15 @@ function renderTable() {
     var q         = document.getElementById('tableSearch').value.toLowerCase();
     var tblOpenVals   = msGetVals('ms-tbl-open');
     var tblStatusVals = msGetVals('ms-tbl-status');
-    msUpdateLabel('ms-tbl-open',   'All', {open:'Open', closed:'Closed', reopened:'Reopened'});
-    msUpdateLabel('ms-tbl-status', 'All Statuses');
+    var tblAppVals    = msGetVals('ms-tbl-appliance');
+    var tblCityVals   = msGetVals('ms-tbl-city');
+    var tblTeamVals   = msGetVals('ms-tbl-team');
+    var tblPriKeys    = Object.keys(tblPriorityActive);
+    msUpdateLabel('ms-tbl-open',      'All',        {open:'Open', closed:'Closed', reopened:'Reopened'});
+    msUpdateLabel('ms-tbl-status',    'All Statuses');
+    msUpdateLabel('ms-tbl-appliance', 'All Types',  {washing_machine:'Washing Machine', dryer:'Dryer', hot_water:'Hot Water', other:'Other'});
+    msUpdateLabel('ms-tbl-city',      'All Cities', {dublin:'Dublin', cork:'Cork', limerick:'Limerick'});
+    msUpdateLabel('ms-tbl-team',      'All Teams');
     var rows = tableData.slice();
 
     if (tblOpenVals.length) {
@@ -1523,6 +1597,21 @@ function renderTable() {
         });
     }
     if (tblStatusVals.length) rows = rows.filter(function(t) { return tblStatusVals.indexOf(t.status) !== -1; });
+    if (tblAppVals.length)    rows = rows.filter(function(t) { return tblAppVals.indexOf(t.appliance_type || 'other') !== -1; });
+    if (tblCityVals.length)   rows = rows.filter(function(t) { return tblCityVals.indexOf(getCity(t.postcode)) !== -1; });
+    if (tblPriKeys.length)    rows = rows.filter(function(t) { return tblPriorityActive[String(t.priority)] === true; });
+    if (tblTeamVals.length)   rows = rows.filter(function(t) { return tblTeamVals.indexOf(t.team || '') !== -1; });
+    if (tblDwtActive) {
+        rows = rows.filter(function(t) {
+            var d = dwtDays(t);
+            if (d === null) return false;
+            if (tblDwtActive === 'le7')   return d <= 7;
+            if (tblDwtActive === '7-11')  return d >= 7 && d <= 11;
+            if (tblDwtActive === '12-15') return d >= 12 && d <= 15;
+            if (tblDwtActive === 'gt15')  return d > 15;
+            return true;
+        });
+    }
 
     if (q) {
         rows = rows.filter(function(t) {
@@ -1653,6 +1742,31 @@ function changePage(dir) {
 }
 
 // -- Init --
+function getCity(postcode) {
+    if (!postcode) return '';
+    var p = postcode.trim().toUpperCase();
+    if (/^D\d|^D6W|^A9[46]|^K6\d/.test(p)) return 'dublin';
+    if (/^T1\d|^T2\d|^P\d/.test(p)) return 'cork';
+    if (/^V9\d/.test(p)) return 'limerick';
+    return '';
+}
+
+function tblPillToggle(btn, group, val) {
+    if (group === 'priority') {
+        var k = String(val);
+        if (tblPriorityActive[k]) { delete tblPriorityActive[k]; btn.classList.remove('tp-on'); }
+        else { tblPriorityActive[k] = true; btn.classList.add('tp-on'); }
+    } else if (group === 'dwt') {
+        if (tblDwtActive === val) {
+            tblDwtActive = null; btn.classList.remove('tp-on');
+        } else {
+            document.querySelectorAll('#tbl-dwt-pills .tbl-pill').forEach(function(b){ b.classList.remove('tp-on'); });
+            tblDwtActive = val; btn.classList.add('tp-on');
+        }
+    }
+    renderTable();
+}
+
 function populateStatusDropdowns() {
     var seen = {};
     RAW.forEach(function(t) { seen[t.status] = true; });
@@ -1665,6 +1779,16 @@ function populateStatusDropdowns() {
     }).join('');
     document.getElementById('ms-status-drop').innerHTML     = html;
     document.getElementById('ms-tbl-status-drop').innerHTML = tblHtml;
+
+    var teamSeen = {};
+    RAW.forEach(function(t) { if (t.team) teamSeen[t.team] = true; });
+    var teamKeys = Object.keys(teamSeen).sort();
+    var teamHtml = teamKeys.map(function(s) {
+        var v = s.replace(/"/g, '&quot;');
+        return '<label class="ms-opt"><input type="checkbox" value="' + v + '" onchange="renderTable()"> ' + s + '</label>';
+    }).join('');
+    var teamDrop = document.getElementById('ms-tbl-team-drop');
+    if (teamDrop) teamDrop.innerHTML = teamHtml;
 }
 // ---- Auth ----
 var ALLOWED_EMAILS = [
