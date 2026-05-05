@@ -378,7 +378,11 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 .tbl-pills{display:flex;gap:4px;flex-wrap:wrap}
 .tbl-pill{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:3px 9px;border-radius:20px;cursor:pointer;font-size:0.75rem;transition:all 0.15s;white-space:nowrap;line-height:1.4}
 .tbl-pill:hover{border-color:var(--accent);color:var(--text)}
-.tbl-pill.tp-on{background:rgba(124,106,247,0.15);border-color:var(--accent);color:var(--accent);font-weight:600}</style>
+.tbl-pill.tp-on{background:rgba(124,106,247,0.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+#ms-open .ms-opt{border-radius:4px;padding:2px 4px;transition:background 0.15s,color 0.15s}
+#ms-open .ms-opt.oc-active{background:rgba(0,170,68,0.18);color:#00AA44;font-weight:600}
+body.filter-open-only [data-card-type="closed"]{display:none}
+body.filter-closed-only [data-card-type="open"]{display:none}</style>
 </head>
 <body>
 
@@ -502,18 +506,18 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 
 <main>
   <div class="stats-grid">
-    <div class="stat-card sc-orange"><div class="stat-icon ic-orange">&#x1F3AB;</div><div><div class="stat-val" id="s-total">-</div><div class="stat-label">Total Tickets</div><div class="stat-sub" id="s-total-sub"></div></div></div>
-    <div class="stat-card sc-red"><div class="stat-icon ic-red">&#x1F513;</div><div><div class="stat-val" id="s-open">-</div><div class="stat-label">Open / Reported</div><div class="stat-sub" id="s-open-sub"></div></div></div>
-    <div class="stat-card sc-green"><div class="stat-icon ic-green">&#x2705;</div><div><div class="stat-val" id="s-closed">-</div><div class="stat-label">Closed</div><div class="stat-sub" id="s-closed-sub"></div></div></div>
-    <div class="stat-card sc-blue"><div class="stat-icon ic-blue">&#x23F1;</div><div><div class="stat-val" id="s-avg">-</div><div class="stat-label">Avg. Resolution</div><div class="stat-sub">days to close</div></div></div>
-    <div class="stat-card sc-yellow"><div class="stat-icon ic-yellow">&#x26A1;</div><div><div class="stat-val" id="s-fast">-</div><div class="stat-label">Resolved &lt; 7 days</div><div class="stat-sub" id="s-fast-sub"></div></div></div>
-    <div class="stat-card sc-purple"><div class="stat-icon ic-purple">&#x1F4CA;</div><div><div class="stat-val" id="s-med">-</div><div class="stat-label">Median Resolution</div><div class="stat-sub">50th percentile</div></div></div>
-    <div class="stat-card sc-orange"><div class="stat-icon ic-orange">&#x21A9;</div><div><div class="stat-val" id="s-reopened">-</div><div class="stat-label">Reopened</div><div class="stat-sub" id="s-reopened-sub">tickets reopened</div></div></div>
-    <div class="stat-card sc-green"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;14 days</div></div></div>
+    <div class="stat-card sc-orange" data-card-type="neutral"><div class="stat-icon ic-orange">&#x1F3AB;</div><div><div class="stat-val" id="s-total">-</div><div class="stat-label">Total Tickets</div><div class="stat-sub" id="s-total-sub"></div></div></div>
+    <div class="stat-card sc-red" data-card-type="open"><div class="stat-icon ic-red">&#x1F513;</div><div><div class="stat-val" id="s-open">-</div><div class="stat-label">Open / Reported</div><div class="stat-sub" id="s-open-sub"></div></div></div>
+    <div class="stat-card sc-green" data-card-type="closed"><div class="stat-icon ic-green">&#x2705;</div><div><div class="stat-val" id="s-closed">-</div><div class="stat-label">Closed</div><div class="stat-sub" id="s-closed-sub"></div></div></div>
+    <div class="stat-card sc-blue" data-card-type="closed"><div class="stat-icon ic-blue">&#x23F1;</div><div><div class="stat-val" id="s-avg">-</div><div class="stat-label">Avg. Resolution</div><div class="stat-sub">days to close</div></div></div>
+    <div class="stat-card sc-yellow" data-card-type="closed"><div class="stat-icon ic-yellow">&#x26A1;</div><div><div class="stat-val" id="s-fast">-</div><div class="stat-label">Resolved &lt; 7 days</div><div class="stat-sub" id="s-fast-sub"></div></div></div>
+    <div class="stat-card sc-purple" data-card-type="closed"><div class="stat-icon ic-purple">&#x1F4CA;</div><div><div class="stat-val" id="s-med">-</div><div class="stat-label">Median Resolution</div><div class="stat-sub">50th percentile</div></div></div>
+    <div class="stat-card sc-orange" data-card-type="open"><div class="stat-icon ic-orange">&#x21A9;</div><div><div class="stat-val" id="s-reopened">-</div><div class="stat-label">Reopened</div><div class="stat-sub" id="s-reopened-sub">tickets reopened</div></div></div>
+    <div class="stat-card sc-green" data-card-type="closed"><div class="stat-icon ic-green">&#x2714;&#xFE0E;</div><div><div class="stat-val" id="s-sla">-</div><div class="stat-label">SLA On-Time</div><div class="stat-sub" id="s-sla-sub">closed &#x2264;14 days</div></div></div>
   </div>
 
   <div class="appliance-stats">
-    <div class="app-mini-card app-wm" onclick="appQuickFilter('washing_machine')" title="Click to filter by Washing Machine">
+    <div class="app-mini-card app-wm" data-card-type="open" onclick="appQuickFilter('washing_machine')" title="Click to filter by Washing Machine">
       <div class="app-mini-icon">🫧</div>
       <div>
         <div class="app-mini-val" id="app-open-washing_machine">-</div>
@@ -521,7 +525,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
         <div class="app-mini-sub"><span id="app-total-washing_machine">-</span> total in view</div>
       </div>
     </div>
-    <div class="app-mini-card app-dry" onclick="appQuickFilter('dryer')" title="Click to filter by Dryer">
+    <div class="app-mini-card app-dry" data-card-type="open" onclick="appQuickFilter('dryer')" title="Click to filter by Dryer">
       <div class="app-mini-icon">🌀</div>
       <div>
         <div class="app-mini-val" id="app-open-dryer">-</div>
@@ -529,7 +533,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
         <div class="app-mini-sub"><span id="app-total-dryer">-</span> total in view</div>
       </div>
     </div>
-    <div class="app-mini-card app-hw" onclick="appQuickFilter('hot_water')" title="Click to filter by Hot Water">
+    <div class="app-mini-card app-hw" data-card-type="open" onclick="appQuickFilter('hot_water')" title="Click to filter by Hot Water">
       <div class="app-mini-icon">🔥</div>
       <div>
         <div class="app-mini-val" id="app-open-hot_water">-</div>
@@ -926,6 +930,16 @@ function applyFilters() {
     msUpdateLabel('ms-year',      'All Years');
     msUpdateLabel('ms-month',     'All Months', MONTH_SHORT);
     msUpdateLabel('ms-open',      'All', {open:'Open', closed:'Closed'});
+    // Filter option highlighting
+    ['open','closed'].forEach(function(v){
+        var cb = document.querySelector('#ms-open input[value="'+v+'"]');
+        if (cb) cb.closest('.ms-opt').classList.toggle('oc-active', cb.checked);
+    });
+    // Card visibility
+    var onlyOpen   = f.openFilter.indexOf('open')   !== -1 && f.openFilter.indexOf('closed') === -1;
+    var onlyClosed = f.openFilter.indexOf('closed') !== -1 && f.openFilter.indexOf('open')   === -1;
+    document.body.classList.toggle('filter-open-only',   onlyOpen);
+    document.body.classList.toggle('filter-closed-only', onlyClosed);
     msUpdateLabel('ms-status',    'All Statuses');
     msUpdateLabel('ms-appliance', 'All Types', APPLIANCE_LABELS);
     var tag = document.getElementById('filterTag');
