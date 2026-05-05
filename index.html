@@ -1787,11 +1787,7 @@ function populateStatusDropdowns() {
     if (teamDrop) teamDrop.innerHTML = teamHtml;
 }
 // ---- Auth ----
-var ALLOWED_EMAILS = [
-    'g.struk@leevinhome.com',
-    // Add more team emails here, e.g.:
-    // 'colleague@leevinhome.com',
-];
+var ALLOWED_DOMAIN = 'leevinhome.com';
 
 // Optional: Google Apps Script URL for centralised logging (leave '' to skip)
 var LOG_URL = '';
@@ -1801,7 +1797,7 @@ function onGoogleLogin(response) {
     var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
     var email   = (payload.email || '').toLowerCase();
 
-    if (ALLOWED_EMAILS.map(function(e){ return e.toLowerCase(); }).indexOf(email) === -1) {
+    if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
         document.getElementById('auth-err').style.display = '';
         return;
     }
