@@ -1564,12 +1564,17 @@ function toggleRow(tr, id) {
                     '</div>';
             });
             return '<div class="expand-full" style="margin-top:8px">' +
-                '<div class="expand-label">&#x1F4CB; Team History</div>' +
-                '<div style="margin-top:6px">' + rows.join('') + '</div>' +
-                '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">' +
-                '<div style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Total Days by Team</div>' +
-                summaryRows.join('') +
-                '</div></div>';
+                '<div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">' +
+                  '<div style="flex:1;min-width:220px">' +
+                    '<div class="expand-label">&#x1F4CB; Team History</div>' +
+                    '<div style="margin-top:6px">' + rows.join('') + '</div>' +
+                  '</div>' +
+                  '<div style="flex:1;min-width:180px;padding-left:20px;border-left:1px solid var(--border)">' +
+                    '<div style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Total Days by Team</div>' +
+                    summaryRows.join('') +
+                  '</div>' +
+                '</div>' +
+                '</div>';
         })() +
         reopenedField +
     '</div>';
