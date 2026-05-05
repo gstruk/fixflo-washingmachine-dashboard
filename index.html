@@ -382,7 +382,11 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 #ms-open .ms-opt{border-radius:4px;padding:2px 4px;transition:background 0.15s,color 0.15s}
 #ms-open .ms-opt.oc-active{background:rgba(0,170,68,0.18);color:#00AA44;font-weight:600}
 body.filter-open-only [data-card-type="closed"]{display:none}
-body.filter-closed-only [data-card-type="open"]{display:none}</style>
+body.filter-closed-only [data-card-type="open"]{display:none}
+.app-mini-card{transition:border-color 0.2s,box-shadow 0.2s,background 0.2s}
+[data-appliance="washing_machine"].app-active{border-color:#9c27b0;background:linear-gradient(135deg,rgba(156,39,176,0.08),transparent);box-shadow:inset 3px 0 0 #9c27b0,0 0 16px rgba(156,39,176,0.25)}
+[data-appliance="dryer"].app-active{border-color:#2196f3;background:linear-gradient(135deg,rgba(33,150,243,0.08),transparent);box-shadow:inset 3px 0 0 #2196f3,0 0 16px rgba(33,150,243,0.25)}
+[data-appliance="hot_water"].app-active{border-color:#ff9800;background:linear-gradient(135deg,rgba(255,152,0,0.08),transparent);box-shadow:inset 3px 0 0 #ff9800,0 0 16px rgba(255,152,0,0.25)}</style>
 </head>
 <body>
 
@@ -517,7 +521,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}</style>
   </div>
 
   <div class="appliance-stats">
-    <div class="app-mini-card app-wm" data-card-type="open" onclick="appQuickFilter('washing_machine')" title="Click to filter by Washing Machine">
+    <div class="app-mini-card app-wm" data-card-type="open" data-appliance="washing_machine" onclick="appQuickFilter('washing_machine')" title="Click to filter by Washing Machine">
       <div class="app-mini-icon">🫧</div>
       <div>
         <div class="app-mini-val" id="app-open-washing_machine">-</div>
@@ -525,7 +529,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}</style>
         <div class="app-mini-sub"><span id="app-total-washing_machine">-</span> total in view</div>
       </div>
     </div>
-    <div class="app-mini-card app-dry" data-card-type="open" onclick="appQuickFilter('dryer')" title="Click to filter by Dryer">
+    <div class="app-mini-card app-dry" data-card-type="open" data-appliance="dryer" onclick="appQuickFilter('dryer')" title="Click to filter by Dryer">
       <div class="app-mini-icon">🌀</div>
       <div>
         <div class="app-mini-val" id="app-open-dryer">-</div>
@@ -533,7 +537,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}</style>
         <div class="app-mini-sub"><span id="app-total-dryer">-</span> total in view</div>
       </div>
     </div>
-    <div class="app-mini-card app-hw" data-card-type="open" onclick="appQuickFilter('hot_water')" title="Click to filter by Hot Water">
+    <div class="app-mini-card app-hw" data-card-type="open" data-appliance="hot_water" onclick="appQuickFilter('hot_water')" title="Click to filter by Hot Water">
       <div class="app-mini-icon">🔥</div>
       <div>
         <div class="app-mini-val" id="app-open-hot_water">-</div>
@@ -942,6 +946,10 @@ function applyFilters() {
     document.body.classList.toggle('filter-closed-only', onlyClosed);
     msUpdateLabel('ms-status',    'All Statuses');
     msUpdateLabel('ms-appliance', 'All Types', APPLIANCE_LABELS);
+    // Appliance card highlight sync
+    document.querySelectorAll('[data-appliance]').forEach(function(card){
+        card.classList.toggle('app-active', f.appliances.indexOf(card.dataset.appliance) !== -1);
+    });
     var tag = document.getElementById('filterTag');
     var parts = [];
     if (quickRange === 30)      parts.push('Last 30 days');
