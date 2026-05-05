@@ -1529,6 +1529,7 @@ function toggleRow(tr, id) {
             '</div></div>' : '') +
         (function(){
             if (!t.team_history || !t.team_history.length) return '';
+            var currentTeam = t.team_history[t.team_history.length - 1].team;
             var rows = t.team_history.map(function(h, i){
                 var fromFmt = (function(){ var p=h.from.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; })();
                 var toFmt   = h.to ? (function(){ var p=h.to.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; })() : 'today';
@@ -1544,10 +1545,31 @@ function toggleRow(tr, id) {
                     '<span style="font-size:0.73rem;margin-left:4px;color:' + (isCurr ? '#FF9800' : 'var(--muted)') + '">' + span + 'd</span>' +
                     '</div>';
             });
+            // Build total days per team summary
+            var teamTotals = {}, teamCounts = {};
+            t.team_history.forEach(function(h){
+                var span = Math.max(0, Math.round((h.to ? new Date(h.to) : TODAY) - new Date(h.from)) / 86400000);
+                teamTotals[h.team] = (teamTotals[h.team] || 0) + span;
+                teamCounts[h.team] = (teamCounts[h.team] || 0) + 1;
+            });
+            var summaryRows = Object.keys(teamTotals).map(function(team){
+                var isCurr  = team === currentTeam;
+                var count   = teamCounts[team];
+                var days    = Math.round(teamTotals[team]);
+                return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0">' +
+                    '<span style="min-width:6px;height:6px;border-radius:50%;background:' + (isCurr ? '#3fb950' : '#8b949e') + ';display:inline-block;flex-shrink:0"></span>' +
+                    '<span style="min-width:160px;font-size:0.78rem;' + (isCurr ? 'font-weight:600' : 'color:var(--muted)') + '">' + team + '</span>' +
+                    '<span style="font-size:0.73rem;font-weight:600;color:' + (isCurr ? '#FF9800' : 'var(--muted)') + '">' + days + ' days total</span>' +
+                    (count > 1 ? '<span style="font-size:0.7rem;color:var(--muted);margin-left:2px">(' + count + ' assignments)</span>' : '') +
+                    '</div>';
+            });
             return '<div class="expand-full" style="margin-top:8px">' +
                 '<div class="expand-label">&#x1F4CB; Team History</div>' +
                 '<div style="margin-top:6px">' + rows.join('') + '</div>' +
-                '</div>';
+                '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">' +
+                '<div style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Total Days by Team</div>' +
+                summaryRows.join('') +
+                '</div></div>';
         })() +
         reopenedField +
     '</div>';
