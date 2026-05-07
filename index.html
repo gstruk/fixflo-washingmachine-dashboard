@@ -1719,7 +1719,7 @@ function renderTable() {
     var tbody = document.getElementById('tableBody');
     tbody.innerHTML = slice.map(function(t) {
         var isClosed   = t.status === 'Closed';
-        var isOpenStat = isOpenStatus(t.status);
+        var isOpenStat = t.isOpen;
 
         var closedDateCell = isClosed && t.cd ? fmtDate(t.cd) : '-';
 
