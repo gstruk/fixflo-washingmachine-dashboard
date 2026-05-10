@@ -172,10 +172,11 @@ tr:hover td{background:var(--surface2)}
 tr.row-expandable{cursor:pointer}
 tr.row-expandable:hover td{background:rgba(63,185,80,0.45)!important}
 tr.row-expanded>td{background:rgba(63,185,80,0.12)!important;border-bottom:none!important}
-/* Age-based row tinting (open tickets only) */
-tr.age-fresh>td {background:rgba(63,185,80,0.07)}
-tr.age-mid>td   {background:rgba(227,179,65,0.08)}
-tr.age-old>td   {background:rgba(248,81,73,0.09)}
+/* Age-based row tinting (open tickets only) — !important overrides zebra stripe */
+tr.age-fresh>td  {background:rgba(63,185,80,0.09)!important}
+tr.age-mid>td    {background:rgba(227,179,65,0.10)!important}
+tr.age-old>td    {background:rgba(248,81,73,0.12)!important}
+tr.age-very-old>td{background:rgba(248,81,73,0.22)!important}
 tr.detail-row td{padding:0 8px 10px;border-bottom:1px solid rgba(48,54,61,0.5)}
 .expand-panel{
   background:var(--surface2);border:1px solid var(--border);border-radius:10px;
@@ -287,7 +288,7 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 
 /* Zebra row stripes */
 #ticketTable tbody tr:nth-child(even)>td{background:rgba(33,38,45,0.6)}
-#ticketTable tbody tr.row-expandable:nth-child(even):hover>td{background:rgba(63,185,80,0.09)!important}
+#ticketTable tbody tr.row-expandable:nth-child(even):hover>td{background:rgba(63,185,80,0.45)!important}
 #ticketTable tbody tr:nth-child(even):not(.detail-row):hover>td{background:var(--surface2)}
 
 /* Pagination buttons */
@@ -2051,7 +2052,8 @@ function renderTable() {
         var ageClass = '';
         if (t.isOpen) {
             var d = daysOpen(t);
-            if (d > 14)     ageClass = ' age-old';
+            if (d > 60)     ageClass = ' age-very-old';
+            else if (d > 14) ageClass = ' age-old';
             else if (d > 7) ageClass = ' age-mid';
             else            ageClass = ' age-fresh';
         }
