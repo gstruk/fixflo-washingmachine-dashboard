@@ -65,6 +65,18 @@ header p{color:var(--muted);font-size:0.8rem;margin-top:2px}
   background:rgba(124,106,247,0.15);border:1px solid rgba(124,106,247,0.35);
   color:var(--accent);padding:4px 10px;border-radius:20px;font-size:0.78rem
 }
+.overdue-badge{
+  display:none;align-items:center;gap:6px;
+  background:rgba(248,81,73,0.12);border:1px solid rgba(248,81,73,0.35);
+  color:var(--red);padding:5px 12px;border-radius:20px;
+  font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:background 0.15s
+}
+.overdue-badge:hover{background:rgba(248,81,73,0.22)}
+.overdue-badge-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;
+  animation:livePulse 2s ease-in-out infinite
+}
 .reset-btn{
   margin-left:auto;background:var(--surface2);border:1px solid var(--border);
   color:var(--text);padding:6px 14px;border-radius:7px;cursor:pointer;font-size:0.82rem
@@ -160,6 +172,10 @@ tr:hover td{background:var(--surface2)}
 tr.row-expandable{cursor:pointer}
 tr.row-expandable:hover td{background:rgba(63,185,80,0.07)!important}
 tr.row-expanded>td{background:rgba(63,185,80,0.12)!important;border-bottom:none!important}
+/* Age-based row tinting (open tickets only) */
+tr.age-fresh>td {border-left:2px solid rgba(63,185,80,0.5)}
+tr.age-mid>td   {border-left:2px solid rgba(227,179,65,0.6)}
+tr.age-old>td   {border-left:2px solid rgba(248,81,73,0.65);background:rgba(248,81,73,0.03)}
 tr.detail-row td{padding:0 8px 10px;border-bottom:1px solid rgba(48,54,61,0.5)}
 .expand-panel{
   background:var(--surface2);border:1px solid var(--border);border-radius:10px;
@@ -482,6 +498,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}
       </div>
     </div>
     <div id="filterTag" class="filter-tag" style="display:none"></div>
+    <div class="overdue-badge" id="overdue-badge" onclick="jumpToOverdue()" title="Click to filter overdue open tickets"></div>
     <div class="header-user" id="header-user" onclick="signOut()" title="Sign out">
       <img id="user-pic" src="" alt="">
       <span id="user-name"></span>
@@ -1097,6 +1114,18 @@ function applyFilters() {
     renderTable();
 }
 
+function jumpToOverdue() {
+    // Set table filter to open only, sort by days open descending, scroll to table
+    var msOpen = document.getElementById('ms-tbl-open');
+    if (msOpen) {
+        msOpen.querySelectorAll('input').forEach(function(c){ c.checked = c.value === 'open'; });
+    }
+    currentSort = 'daysOpen'; sortDir = -1;
+    renderTable();
+    var tableEl = document.querySelector('.table-card');
+    if (tableEl) tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         var anyOpen = document.querySelector('.ms-wrap.ms-open');
@@ -1166,6 +1195,17 @@ function updateStats() {
     animateVal('s-total',  total.toLocaleString());
     animateVal('s-open',   String(openT));
     document.getElementById('s-open-sub').textContent  = total ? ((openT / total * 100).toFixed(1) + '% of total') : '';
+    // Overdue badge — open tickets older than 14 days
+    var overdue = filteredData.filter(function(t){ return t.isOpen && daysOpen(t) > 14; }).length;
+    var ob = document.getElementById('overdue-badge');
+    if (ob) {
+        if (overdue > 0) {
+            ob.style.display = 'flex';
+            ob.innerHTML = '<span class="overdue-badge-dot"></span>' + overdue + ' overdue (>14d)';
+        } else {
+            ob.style.display = 'none';
+        }
+    }
     animateVal('s-closed', closed.toLocaleString());
     document.getElementById('s-closed-sub').textContent = total ? ((closed / total * 100).toFixed(1) + '% closure rate') : '';
     animateVal('s-avg',    avgDays !== '-' ? avgDays + 'd' : '-');
@@ -2008,7 +2048,14 @@ function renderTable() {
             ? '<span class="duplicate-badge" title="Another open ticket exists for this appliance at this property">&#9888; Duplicate</span>'
             : '';
         var rowStyle = t.reopened && t.isOpen ? 'background:rgba(240,136,62,0.04)' : '';
-        var rowAttrs = ' class="row-expandable' + (expandedId === t.id ? ' row-expanded' : '') + '"' +
+        var ageClass = '';
+        if (t.isOpen) {
+            var d = daysOpen(t);
+            if (d > 14)     ageClass = ' age-old';
+            else if (d > 7) ageClass = ' age-mid';
+            else            ageClass = ' age-fresh';
+        }
+        var rowAttrs = ' class="row-expandable' + ageClass + (expandedId === t.id ? ' row-expanded' : '') + '"' +
             ' onclick="toggleRow(this,\'' + t.id + '\')"' +
             (rowStyle ? ' style="' + rowStyle + '"' : '');
 
