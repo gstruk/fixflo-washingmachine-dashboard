@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fixflo Maintenance Dashboard - Leevin Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
@@ -15,9 +18,11 @@
   --yellow:#e3b341;--text:#e6edf3;--muted:#8b949e;--radius:12px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+.stat-val{font-feature-settings:'tnum';font-variant-numeric:tabular-nums}
 header{
   background:linear-gradient(135deg,#161b22 0%,#0d1117 100%);
+  border-top:2px solid var(--accent);
   border-bottom:1px solid var(--border);padding:20px 28px;
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px
 }
@@ -182,6 +187,18 @@ tr.detail-row td{padding:0 8px 10px;border-bottom:1px solid rgba(48,54,61,0.5)}
 .ph-table tr:last-child td{border-bottom:none}
 .ph-table tr:hover td{background:var(--surface2)}
 .score-bar{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;margin-left:6px;min-width:2px}
+/* Table density toggle */
+.density-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:5px 11px;border-radius:6px;cursor:pointer;font-size:0.76rem;
+  transition:background 0.14s,border-color 0.14s,color 0.14s;white-space:nowrap
+}
+.density-btn:hover{border-color:var(--accent);color:var(--text)}
+.density-btn.active{background:rgba(124,106,247,0.12);border-color:var(--accent);color:var(--accent);font-weight:600}
+.tbl-compact #ticketTable td,
+.tbl-compact #ticketTable th{padding:5px 12px!important;font-size:0.78rem}
+.tbl-compact .expand-panel{padding:10px 14px;gap:8px 16px}
+
 /* Section headers */
 .section-header{
   display:flex;align-items:center;gap:12px;
@@ -461,6 +478,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}
       <div class="update-info-text">
         <strong>Last Updated: 10 May 2026 · 10:07</strong>
         <span>Source: Issue Summary Export (hob open and closed only) 2026-05-10T10_07_05</span>
+        <span id="header-record-count" style="margin-top:2px;color:var(--accent);font-size:0.72rem;font-weight:600"></span>
       </div>
     </div>
     <div id="filterTag" class="filter-tag" style="display:none"></div>
@@ -599,7 +617,13 @@ body.filter-closed-only [data-card-type="open"]{display:none}
   <div class="table-card" style="margin-bottom:20px">
     <div class="table-head">
       <div class="table-title">&#x1F4CB; Ticket Details <span class="tbl-count-badge" id="tblCountBadge">—</span></div>
-      <input class="search-box" type="text" id="tableSearch" placeholder="Search ID, property, issue..." oninput="renderTable()">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:4px">
+          <button class="density-btn active" id="density-comfortable" onclick="setDensity('comfortable')" title="Comfortable view">&#9645; Comfortable</button>
+          <button class="density-btn" id="density-compact" onclick="setDensity('compact')" title="Compact view">&#9644; Compact</button>
+        </div>
+        <input class="search-box" type="text" id="tableSearch" placeholder="Search ID, property, issue..." oninput="renderTable()">
+      </div>
     </div>
     <div class="tbl-filters">
       <div class="tbl-fg">
@@ -841,7 +865,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}
   </div>
 
 </main>
-<footer>Fixflo Export &middot; Leevin Home &middot; 2026-05-10 10:07:04 &middot; 3154 total records</footer>
+<footer>Leevin Home &middot; Fixflo Dashboard &middot; 2026-05-10 10:07:04</footer>
 </div><!-- /dashboard-wrap -->
 
 <script>
@@ -1071,6 +1095,14 @@ function applyFilters() {
     currentPage = 1;
     tableData = filteredData.slice();
     renderTable();
+}
+
+function setDensity(mode) {
+    var tableCard = document.querySelector('.table-card');
+    if (!tableCard) return;
+    tableCard.classList.toggle('tbl-compact', mode === 'compact');
+    document.getElementById('density-comfortable').classList.toggle('active', mode === 'comfortable');
+    document.getElementById('density-compact').classList.toggle('active', mode === 'compact');
 }
 
 function resetFilters() {
@@ -2141,6 +2173,8 @@ function _showDashboard(user) {
     _backfillApplianceType();
     populateStatusDropdowns();
     applyFilters();
+    var rcEl = document.getElementById('header-record-count');
+    if (rcEl && typeof RAW !== 'undefined') rcEl.textContent = RAW.length.toLocaleString() + ' total records';
 }
 
 function signOut() {
