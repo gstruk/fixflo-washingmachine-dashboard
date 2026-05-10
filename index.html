@@ -1097,6 +1097,16 @@ function applyFilters() {
     renderTable();
 }
 
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var anyOpen = document.querySelector('.ms-wrap.ms-open');
+        if (anyOpen) { anyOpen.classList.remove('ms-open'); return; }
+        var searchActive = document.getElementById('tableSearch') === document.activeElement && document.getElementById('tableSearch').value;
+        if (searchActive) { document.getElementById('tableSearch').value = ''; renderTable(); return; }
+        resetFilters();
+    }
+});
+
 function setDensity(mode) {
     var tableCard = document.querySelector('.table-card');
     if (!tableCard) return;
