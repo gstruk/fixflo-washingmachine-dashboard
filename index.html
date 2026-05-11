@@ -2340,6 +2340,13 @@ function _showDashboard(user) {
 
     _backfillApplianceType();
     populateStatusDropdowns();
+
+    // Default selections: Year 2026 + Open (global), Open (table)
+    var yr26 = document.querySelector('#ms-year input[value="2026"]');
+    if (yr26 && !yr26.checked) { yr26.checked = true; msUpdateLabel('ms-year', 'All Years'); }
+    var tblOpen = document.querySelector('#ms-tbl-open input[value="open"]');
+    if (tblOpen && !tblOpen.checked) { tblOpen.checked = true; msUpdateLabel('ms-tbl-open', 'All'); }
+
     applyFilters();
     var rcEl = document.getElementById('header-record-count');
     if (rcEl && typeof RAW !== 'undefined') rcEl.textContent = RAW.length.toLocaleString() + ' total records';
