@@ -963,7 +963,6 @@ var TEAM_DEPT_MAP = {
     'CX Limerick':                     'CX Team',
     'Limerick - Waiting Customer FU':  'CX Team',
     'Limerick Landlord':               'CX Team',
-    'Critical Waiting to be solved':   'CX Team',
     // Facilities Team
     'Maintenance - Dublin':            'Facilities Team',
     'Maintenance - Cork':              'Facilities Team',
@@ -973,28 +972,17 @@ var TEAM_DEPT_MAP = {
     'Facilities Admin':                'Facilities Team',
     // Commercial Team
     'Commercial Team':                 'Commercial Team',
-    'B2B Team':                        'Commercial Team',
-    'Leevin Cork':                     'Commercial Team',
-    'Leevin Hostel':                   'Commercial Team',
     // Property Management
     '1 - LANDLORD':                    'Property Management',
     '2 - LL - Waiting answer':         'Property Management',
     '3 - LL- Agreed':                  'Property Management',
     '8 - LL - On hold':                'Property Management',
-    'Landlord - On hold':              'Property Management',
-    'Landlord - Waiting customer':     'Property Management',
     'Furniture Analysis':              'Property Management',
     'Maint. - Inspec - Low score':     'Property Management',
     'Maint. - Inspec - High score':    'Property Management',
-    'Double Check - Inspection':       'Property Management',
-    'Inspection - Next step':          'Property Management',
-    'Layout/ Return Property':         'Property Management',
-    'FIELD AGENT':                     'Property Management',
-    'Inspecao/Manutencao Preventiva':  'Property Management',
     // Purchasing (Finance)
-    'Purchasing':                      'Purchasing (Finance)',
-    'Waiting for Purchasing':          'Purchasing (Finance)',
-    'Bills':                           'Purchasing (Finance)'
+    'Purchasing':                      'Purchasing (Finance)'
+    // All other teams → 'Others' (fallback in getDeptForTeam)
 };
 function getDeptForTeam(team) {
     if (!team || !team.trim()) return 'CX Team'; // blank = Unassigned → CX Team
