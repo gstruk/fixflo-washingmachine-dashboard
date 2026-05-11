@@ -458,7 +458,16 @@ body.filter-closed-only [data-card-type="open"]{display:none}
 [data-appliance="washing_machine"].app-active{border-color:#9c27b0;background:linear-gradient(135deg,rgba(156,39,176,0.08),transparent);box-shadow:inset 3px 0 0 #9c27b0,0 0 16px rgba(156,39,176,0.25)}
 [data-appliance="dryer"].app-active{border-color:#2196f3;background:linear-gradient(135deg,rgba(33,150,243,0.08),transparent);box-shadow:inset 3px 0 0 #2196f3,0 0 16px rgba(33,150,243,0.25)}
 [data-appliance="hot_water"].app-active{border-color:#ff9800;background:linear-gradient(135deg,rgba(255,152,0,0.08),transparent);box-shadow:inset 3px 0 0 #ff9800,0 0 16px rgba(255,152,0,0.25)}
-[data-appliance="hob"].app-active{border-color:#00acc1;background:linear-gradient(135deg,rgba(0,172,193,0.08),transparent);box-shadow:inset 3px 0 0 #00acc1,0 0 16px rgba(0,172,193,0.25)}</style>
+[data-appliance="hob"].app-active{border-color:#00acc1;background:linear-gradient(135deg,rgba(0,172,193,0.08),transparent);box-shadow:inset 3px 0 0 #00acc1,0 0 16px rgba(0,172,193,0.25)}
+/* ── Department badges & column ── */
+.dept-badge{display:inline-block;padding:3px 9px;border-radius:4px;font-size:0.71rem;font-weight:500;white-space:nowrap;border:1px solid #444;letter-spacing:0.02em}
+.dept-badge[data-dept="CX Team"]{background:rgba(156,39,176,0.13);color:#ce93d8;border-color:rgba(156,39,176,0.45)}
+.dept-badge[data-dept="Facilities Team"]{background:rgba(33,150,243,0.13);color:#90caf9;border-color:rgba(33,150,243,0.45)}
+.dept-badge[data-dept="Commercial Team"]{background:rgba(0,188,212,0.13);color:#80deea;border-color:rgba(0,188,212,0.45)}
+.dept-badge[data-dept="Property Management"]{background:rgba(255,152,0,0.13);color:#ffcc80;border-color:rgba(255,152,0,0.45)}
+.dept-badge[data-dept="Purchasing (Finance)"]{background:rgba(244,67,54,0.13);color:#ef9a9a;border-color:rgba(244,67,54,0.45)}
+.dept-badge[data-dept="Others"]{background:rgba(158,158,158,0.1);color:#bdbdbd;border-color:rgba(158,158,158,0.35)}
+@media(max-width:768px){.dept-badge{padding:2px 7px;font-size:0.65rem}}</style>
 </head>
 <body>
 
@@ -581,6 +590,19 @@ body.filter-closed-only [data-card-type="open"]{display:none}
     <div class="ms-wrap" id="ms-team">
       <button type="button" class="ms-btn" onclick="msToggle('ms-team')"><span class="ms-label">All Teams</span><span class="ms-arrow">&#9660;</span></button>
       <div class="ms-drop" id="ms-team-drop"></div>
+    </div>
+  </label>
+  <label>&#x1F3E2; Department
+    <div class="ms-wrap" id="ms-dept">
+      <button type="button" class="ms-btn" onclick="msToggle('ms-dept')"><span class="ms-label">All Departments</span><span class="ms-arrow">&#9660;</span></button>
+      <div class="ms-drop">
+        <label class="ms-opt"><input type="checkbox" value="CX Team"              onchange="applyFilters()"> CX Team</label>
+        <label class="ms-opt"><input type="checkbox" value="Facilities Team"      onchange="applyFilters()"> Facilities Team</label>
+        <label class="ms-opt"><input type="checkbox" value="Commercial Team"      onchange="applyFilters()"> Commercial Team</label>
+        <label class="ms-opt"><input type="checkbox" value="Property Management"  onchange="applyFilters()"> Property Management</label>
+        <label class="ms-opt"><input type="checkbox" value="Purchasing (Finance)" onchange="applyFilters()"> Purchasing (Finance)</label>
+        <label class="ms-opt"><input type="checkbox" value="Others"               onchange="applyFilters()"> Others</label>
+      </div>
     </div>
   </label>
   <div class="quick-range-btns">
@@ -711,6 +733,20 @@ body.filter-closed-only [data-card-type="open"]{display:none}
         </div>
       </div>
       <div class="tbl-fg">
+        <span>Department</span>
+        <div class="ms-wrap" id="ms-tbl-dept">
+          <button type="button" class="ms-btn" onclick="msToggle('ms-tbl-dept')"><span class="ms-label">All Departments</span><span class="ms-arrow">&#9660;</span></button>
+          <div class="ms-drop">
+            <label class="ms-opt"><input type="checkbox" value="CX Team"              onchange="renderTable()"> CX Team</label>
+            <label class="ms-opt"><input type="checkbox" value="Facilities Team"      onchange="renderTable()"> Facilities Team</label>
+            <label class="ms-opt"><input type="checkbox" value="Commercial Team"      onchange="renderTable()"> Commercial Team</label>
+            <label class="ms-opt"><input type="checkbox" value="Property Management"  onchange="renderTable()"> Property Management</label>
+            <label class="ms-opt"><input type="checkbox" value="Purchasing (Finance)" onchange="renderTable()"> Purchasing (Finance)</label>
+            <label class="ms-opt"><input type="checkbox" value="Others"               onchange="renderTable()"> Others</label>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-fg">
         <span>Priority</span>
         <div class="tbl-pills" id="tbl-priority-pills">
           <button class="tbl-pill" onclick="tblPillToggle(this,'priority',0)">0</button>
@@ -744,6 +780,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}
         <col style="width:66px"><!-- Priority -->
         <col style="width:92px"><!-- Status -->
         <col style="width:145px"><!-- Assigned Team -->
+        <col style="width:118px"><!-- Department -->
         <col style="width:90px"><!-- Days With Team -->
       </colgroup>
       <thead><tr>
@@ -757,6 +794,7 @@ body.filter-closed-only [data-card-type="open"]{display:none}
         <th class="sortable" onclick="setSort('priority')">Priority <span id="sh-priority" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('status')">Status <span id="sh-status" class="sort-icon">&#8597;</span></th>
         <th class="sortable" onclick="setSort('team')">Assigned Team <span id="sh-team" class="sort-icon">&#8597;</span></th>
+        <th class="col-dept-th">Department</th>
         <th class="sortable" onclick="setSort('dwt')" title="How long this ticket has been with its current team. Tracking started 01 May 2026.">Days with Team <span id="sh-dwt" class="sort-icon">&#8597;</span></th>
       </tr></thead>
       <tbody id="tableBody"></tbody>
@@ -913,6 +951,45 @@ var RAW =[{"id":"IS7366708","team":"","status":"Closed","isOpen":false,"ry":2022
 var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// ── Department mapping ──────────────────────────────────────────────────────
+var TEAM_DEPT_MAP = {
+    // CX Team
+    'Unassigned':                    'CX Team',
+    'CX Team':                       'CX Team',
+    'CX Admin':                      'CX Team',
+    'Charge Customer':               'CX Team',
+    'CX Limerick':                   'CX Team',
+    'Limerick waiting customer FU':  'CX Team',
+    'CX Limerick Technician':        'CX Team',
+    'CX Limerick Landlord':          'CX Team',
+    // Facilities Team
+    'Maintenance Dublin':            'Facilities Team',
+    'Maintenance Cork':              'Facilities Team',
+    'Technician Dublin':             'Facilities Team',
+    'Technician Cork':               'Facilities Team',
+    'Waiting for Completion':        'Facilities Team',
+    // Commercial Team
+    'Commercial Team':               'Commercial Team',
+    // Property Management
+    '1 - Landlord':                  'Property Management',
+    '2 - LL - Waiting Answer':       'Property Management',
+    'Furniture Analysis':            'Property Management',
+    '3 - LL Agreed':                 'Property Management',
+    '4 - LL Follow up customer':     'Property Management',
+    '5 - LL Inspection':             'Property Management',
+    '6 - LL Approval of quotation':  'Property Management',
+    '8 - LL On Hold':                'Property Management',
+    'Maint Inspec Low Score':        'Property Management',
+    'Maint Spec High Score':         'Property Management',
+    'Inspection screening':          'Property Management',
+    // Purchasing (Finance)
+    'Purchasing':                    'Purchasing (Finance)'
+};
+function getDeptForTeam(team) {
+    if (!team || !team.trim()) return 'CX Team'; // blank = Unassigned → CX Team
+    return TEAM_DEPT_MAP[team.trim()] || 'Others';
+}
+
 // Priority: index = FaultPriority value (0-5)
 var PRI_COLOR = ['#8b949e','#f85149','#f0883e','#58a6ff','#3fb950','#6e7681'];
 
@@ -1060,7 +1137,8 @@ function getFilters() {
         openFilter: msGetVals('ms-open'),
         statuses:   msGetVals('ms-status'),
         appliances: msGetVals('ms-appliance'),
-        teams:      msGetVals('ms-team')
+        teams:      msGetVals('ms-team'),
+        depts:      msGetVals('ms-dept')
     };
 }
 
@@ -1090,6 +1168,7 @@ function applyFilters() {
         if (f.statuses.length && f.statuses.indexOf(t.status) === -1) return false;
         if (f.appliances.length && f.appliances.indexOf(t.appliance_type || 'other') === -1) return false;
         if (f.teams.length && f.teams.indexOf(t.team || '') === -1) return false;
+        if (f.depts.length && f.depts.indexOf(getDeptForTeam(t.team)) === -1) return false;
         return true;
     });
     var APPLIANCE_LABELS = {washing_machine:'Washing Machine', dryer:'Dryer', hot_water:'Hot Water', hob:'Hob', other:'Other'};
@@ -1109,6 +1188,7 @@ function applyFilters() {
     msUpdateLabel('ms-status',    'All Statuses');
     msUpdateLabel('ms-appliance', 'All Types', APPLIANCE_LABELS);
     msUpdateLabel('ms-team',      'All Teams');
+    msUpdateLabel('ms-dept',      'All Departments');
     // Appliance card highlight sync
     document.querySelectorAll('[data-appliance]').forEach(function(card){
         card.classList.toggle('app-active', f.appliances.indexOf(card.dataset.appliance) !== -1);
@@ -1165,7 +1245,7 @@ function setDensity(mode) {
 function resetFilters() {
     quickRange = null;
     document.querySelectorAll('.quick-range-btn').forEach(function(b){ b.classList.remove('qr-active'); });
-    ['ms-year','ms-month','ms-open','ms-status','ms-appliance','ms-team'].forEach(function(id) {
+    ['ms-year','ms-month','ms-open','ms-status','ms-appliance','ms-team','ms-dept'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
     });
@@ -1187,7 +1267,7 @@ function appQuickFilter(type) {
 }
 
 function resetTableFilters() {
-    ['ms-tbl-open','ms-tbl-status','ms-tbl-appliance','ms-tbl-city','ms-tbl-team'].forEach(function(id) {
+    ['ms-tbl-open','ms-tbl-status','ms-tbl-appliance','ms-tbl-city','ms-tbl-team','ms-tbl-dept'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.querySelectorAll('input').forEach(function(c){ c.checked = false; });
     });
@@ -1948,12 +2028,14 @@ function renderTable() {
     var tblAppVals    = msGetVals('ms-tbl-appliance');
     var tblCityVals   = msGetVals('ms-tbl-city');
     var tblTeamVals   = msGetVals('ms-tbl-team');
+    var tblDeptVals   = msGetVals('ms-tbl-dept');
     var tblPriKeys    = Object.keys(tblPriorityActive);
     msUpdateLabel('ms-tbl-open',      'All',        {open:'Open', closed:'Closed', reopened:'Reopened'});
     msUpdateLabel('ms-tbl-status',    'All Statuses');
     msUpdateLabel('ms-tbl-appliance', 'All Types',  {washing_machine:'Washing Machine', dryer:'Dryer', hot_water:'Hot Water', hob:'Hob', other:'Other'});
     msUpdateLabel('ms-tbl-city',      'All Cities', {dublin:'Dublin', cork:'Cork', limerick:'Limerick'});
     msUpdateLabel('ms-tbl-team',      'All Teams');
+    msUpdateLabel('ms-tbl-dept',      'All Departments');
     var rows = tableData.slice();
 
     if (tblOpenVals.length) {
@@ -1969,6 +2051,7 @@ function renderTable() {
     if (tblCityVals.length)   rows = rows.filter(function(t) { return tblCityVals.indexOf(getCity(t.postcode)) !== -1; });
     if (tblPriKeys.length)    rows = rows.filter(function(t) { return tblPriorityActive[String(t.priority)] === true; });
     if (tblTeamVals.length)   rows = rows.filter(function(t) { return tblTeamVals.indexOf(t.team || '') !== -1; });
+    if (tblDeptVals.length)   rows = rows.filter(function(t) { return tblDeptVals.indexOf(getDeptForTeam(t.team)) !== -1; });
     if (tblDwtActive) {
         rows = rows.filter(function(t) {
             var d = dwtDays(t);
@@ -2100,6 +2183,7 @@ function renderTable() {
             '<td>' + priChip(t.priority) + '</td>' +
             '<td>' + statusChip(t.status) + (t.reopened ? ' <span class="s-reopened status-chip" style="font-size:0.65rem;padding:1px 6px">&#x21A9;</span>' : '') + (t.duplicate ? ' <span class="duplicate-badge" style="font-size:0.65rem;padding:1px 6px">&#9888;</span>' : '') + '</td>' +
             '<td style="font-size:0.78rem;white-space:nowrap;color:var(--muted)">' + (t.team || '<span style="opacity:0.4">—</span>') + '</td>' +
+            (function(){ var dept = getDeptForTeam(t.team); return '<td style="text-align:center;padding:8px 6px"><span class="dept-badge" data-dept="' + dept + '">' + dept + '</span></td>'; })() +
             (function(){
                 var d = dwtDays(t);
                 if (d === null) return '<td><span style="color:var(--muted);font-size:0.72rem" title="Team history not yet tracked">—</span></td>';
