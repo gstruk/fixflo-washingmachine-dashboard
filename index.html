@@ -151,6 +151,9 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface2)}
 .id-cell{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .badge{background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:5px;font-size:0.75rem;white-space:nowrap}
+.ticket-link{color:inherit;text-decoration:none;font-weight:inherit}
+.ticket-link:hover{color:#00dd55;text-decoration:underline}
+.ticket-link:active{color:#00aa44}
 /* Copy button */
 .copy-btn{
   background:transparent;border:1px solid var(--border);color:var(--muted);
@@ -2211,7 +2214,7 @@ function renderTable() {
         })();
         return '<tr' + rowAttrs + '>' +
             '<td><div class="id-cell">' +
-                '<span class="badge">' + t.id + '</span>' +
+                '<a class="badge ticket-link" href="https://leevin.fixflo.com/Dashboard/Home/#/Issue/_Detail?id=' + t.id + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">' + t.id + '</a>' +
                 '<button class="copy-btn" data-id="' + t.id + '" onclick="event.stopPropagation();doCopy(this)" title="Copy ID">' + COPY_ICON + '</button>' +
             '</div>' + reopenedBadge + duplicateBadge + '</td>' +
             '<td title="' + t.title + '">' + appBadge + shortTitle(t.title) + '</td>' +
