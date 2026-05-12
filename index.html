@@ -176,6 +176,27 @@ tr:hover td{background:var(--surface2)}
 .prop-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dwt-open{background:rgba(255,152,0,0.15);color:#FF9800;border:1px solid rgba(255,152,0,0.4);padding:2px 7px;border-radius:4px;font-weight:700;font-size:0.73rem;white-space:nowrap}
 .dwt-closed{background:rgba(117,117,117,0.15);color:#9e9e9e;border:1px solid rgba(117,117,117,0.35);padding:2px 7px;border-radius:4px;font-weight:700;font-size:0.73rem;white-space:nowrap}
+.dwt-dept-sections{display:flex;flex-direction:column;gap:10px}
+.dwt-dept-block{border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)}
+.dwt-dept-header{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;transition:background 0.15s;user-select:none}
+.dwt-dept-header:hover{background:rgba(255,255,255,0.05)}
+.dwt-dept-colorbar{width:4px;height:36px;border-radius:2px;flex-shrink:0}
+.dwt-dept-name{font-size:0.88rem;font-weight:600;color:var(--text);flex:1}
+.dwt-dept-avg{font-size:1.05rem;font-weight:700;min-width:58px;text-align:right}
+.dwt-dept-meta{font-size:0.72rem;color:var(--muted);min-width:70px;text-align:right}
+.dwt-dept-chevron{font-size:0.7rem;color:var(--muted);margin-left:6px;transition:transform 0.2s;flex-shrink:0}
+.dwt-dept-block.dwt-expanded .dwt-dept-chevron{transform:rotate(180deg)}
+.dwt-dept-bar-track{height:5px;background:rgba(255,255,255,0.08);margin:0 16px 0 32px;border-radius:3px}
+.dwt-dept-bar-fill{height:100%;border-radius:3px;transition:width 0.4s ease}
+.dwt-dept-teams{display:none;padding:10px 16px 14px 32px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.15)}
+.dwt-dept-block.dwt-expanded .dwt-dept-teams{display:block}
+.dwt-team-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.dwt-team-row:last-child{border-bottom:none}
+.dwt-team-name{font-size:0.78rem;color:var(--muted);flex:1}
+.dwt-team-count{font-size:0.72rem;color:var(--muted);min-width:60px;text-align:right}
+.dwt-team-avg{font-size:0.78rem;font-weight:700;min-width:46px;text-align:right}
+.dwt-team-mini-bar{height:3px;border-radius:2px;min-width:4px;flex-shrink:0}
+.dwt-summary-row{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--muted);display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
 .tbl-hide-closed .col-closed{display:none}
 .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0 4px;font-size:0.82rem;color:var(--muted)}
 .pagination button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
@@ -925,21 +946,10 @@ body.filter-closed-only [data-card-type="open"]{display:none}
 
   <div class="charts-row" style="margin-bottom:20px">
     <div class="chart-card">
-      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Avg Days with Team &mdash; per Team</div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px">Average days a ticket spends with each team &mdash; across all tickets in the filtered view (from full team history)</div>
-      <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
-        <div class="chart-wrap" style="min-height:280px"><canvas id="cTeamDwt"></canvas></div>
-        <div>
-          <table class="ph-table">
-            <thead><tr>
-              <th>Team</th>
-              <th style="text-align:center">Open Tickets</th>
-              <th style="text-align:center">Avg Days</th>
-            </tr></thead>
-            <tbody id="teamDwtTbody"></tbody>
-          </table>
-        </div>
-      </div>
+      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Avg Days with Team &mdash; by Department</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:16px">Average days a ticket spends per department &mdash; click a department to expand team detail</div>
+      <div id="dwtDeptSections" class="dwt-dept-sections"></div>
+      <div id="dwtSummaryRow" class="dwt-summary-row"></div>
     </div>
   </div>
 
@@ -1727,11 +1737,19 @@ function updateSla(data) {
     });
 }
 
-// -- Avg Days with Team --
+// -- Avg Days with Team — by Department --
+var DWT_DEPT_COLORS = {
+    'CX Team':             '#9c27b0',
+    'Facilities Team':     '#2196f3',
+    'Commercial Team':     '#00bcd4',
+    'Property Management': '#ff9800',
+    'Purchasing (Finance)':'#f44336',
+    'Others':              '#9e9e9e'
+};
+var DWT_DEPT_ORDER = ['CX Team','Facilities Team','Commercial Team','Property Management','Purchasing (Finance)','Others'];
+
 function updateTeamDwt(data) {
     var teamData = {};
-
-    // Only open tickets with a team assigned
     data.forEach(function(t) {
         if (!t.isOpen || !t.team) return;
         var d = dwtDays(t);
@@ -1741,82 +1759,89 @@ function updateTeamDwt(data) {
         teamData[t.team].totalDays += d;
     });
 
-    var teams = Object.keys(teamData).filter(function(n) { return teamData[n].count > 0; });
-    teams.sort(function(a, b) {
-        return (teamData[b].totalDays / teamData[b].count) - (teamData[a].totalDays / teamData[a].count);
+    // Group by department
+    var deptData = {};
+    Object.keys(teamData).forEach(function(team) {
+        var dept = getDeptForTeam(team);
+        if (!deptData[dept]) deptData[dept] = { totalDays: 0, count: 0, teams: [] };
+        var td = teamData[team];
+        deptData[dept].totalDays += td.totalDays;
+        deptData[dept].count     += td.count;
+        deptData[dept].teams.push({ name: team, count: td.count, totalDays: td.totalDays,
+            avg: +(td.totalDays / td.count).toFixed(1) });
     });
 
-    var avgDays = teams.map(function(n) { return +(teamData[n].totalDays / teamData[n].count).toFixed(1); });
+    var depts = DWT_DEPT_ORDER.filter(function(d) { return deptData[d] && deptData[d].count > 0; });
+    depts.forEach(function(dept) {
+        var dd = deptData[dept];
+        dd.avg = +(dd.totalDays / dd.count).toFixed(1);
+        dd.teams.sort(function(a, b) { return b.avg - a.avg; });
+    });
+    depts.sort(function(a, b) { return deptData[b].avg - deptData[a].avg; });
 
-    destroyChart('cTeamDwt');
-    charts['cTeamDwt'] = new Chart(document.getElementById('cTeamDwt'), {
-        type: 'bar',
-        plugins: [ChartDataLabels],
-        data: {
-            labels: teams,
-            datasets: [{
-                label: 'Avg Days with Team',
-                data: avgDays,
-                backgroundColor: avgDays.map(function(v) {
-                    if (v > 15) return 'rgba(248,81,73,0.85)';
-                    if (v > 10) return 'rgba(240,136,62,0.85)';
-                    if (v > 7)  return 'rgba(227,179,65,0.85)';
-                    if (v > 3)  return 'rgba(63,185,80,0.75)';
-                    return 'rgba(88,166,255,0.85)';
-                }),
-                borderRadius: 6
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    anchor: 'end', align: 'end',
-                    color: '#8b949e',
-                    font: { size: 11, weight: '600' },
-                    formatter: function(v, ctx) {
-                        return v + 'd (' + teamData[teams[ctx.dataIndex]].count + ' open)';
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(c) {
-                            var d = teamData[teams[c.dataIndex]];
-                            return [' Avg: ' + c.parsed.x + ' days', ' Open tickets: ' + d.count];
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: { grid: { color: '#30363d' }, ticks: { precision: 0 } },
-                y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-            }
-        }
+    var maxAvg = depts.length ? deptData[depts[0]].avg : 1;
+    var container = document.getElementById('dwtDeptSections');
+    if (!container) return;
+    container.innerHTML = '';
+
+    depts.forEach(function(dept) {
+        var dd = deptData[dept];
+        var color = DWT_DEPT_COLORS[dept] || '#9e9e9e';
+        var pct   = maxAvg ? Math.round((dd.avg / maxAvg) * 100) : 0;
+        var maxTeamAvg = dd.teams.length ? dd.teams[0].avg : 1;
+
+        var block = document.createElement('div');
+        block.className = 'dwt-dept-block';
+
+        // Header
+        var hdr = document.createElement('div');
+        hdr.className = 'dwt-dept-header';
+        hdr.innerHTML =
+            '<div class="dwt-dept-colorbar" style="background:' + color + '"></div>' +
+            '<div class="dwt-dept-name">' + dept + '</div>' +
+            '<div class="dwt-dept-meta">' + dd.count + ' open</div>' +
+            '<div class="dwt-dept-avg" style="color:' + color + '">' + dd.avg + 'd</div>' +
+            '<div class="dwt-dept-chevron">&#x25BC;</div>';
+        hdr.addEventListener('click', function() {
+            block.classList.toggle('dwt-expanded');
+        });
+        block.appendChild(hdr);
+
+        // Bar track
+        var track = document.createElement('div');
+        track.className = 'dwt-dept-bar-track';
+        track.innerHTML = '<div class="dwt-dept-bar-fill" style="width:' + pct + '%;background:' + color + '"></div>';
+        block.appendChild(track);
+
+        // Teams list
+        var teamsDiv = document.createElement('div');
+        teamsDiv.className = 'dwt-dept-teams';
+        teamsDiv.innerHTML = dd.teams.map(function(t) {
+            var tPct = maxTeamAvg ? Math.round((t.avg / maxTeamAvg) * 100) : 0;
+            return '<div class="dwt-team-row">' +
+                '<div class="dwt-team-mini-bar" style="width:' + Math.max(tPct, 4) + 'px;background:' + color + ';opacity:0.55"></div>' +
+                '<div class="dwt-team-name">' + t.name + '</div>' +
+                '<div class="dwt-team-count">' + t.count + ' tickets</div>' +
+                '<div class="dwt-team-avg" style="color:' + color + '">' + t.avg + 'd</div>' +
+                '</div>';
+        }).join('');
+        block.appendChild(teamsDiv);
+        container.appendChild(block);
     });
 
-    // Summary table
-    var tbody = document.getElementById('teamDwtTbody');
-    if (!tbody) return;
-    var totalTickets = teams.reduce(function(s, n) { return s + teamData[n].count; }, 0);
-    var totalDaysAll = teams.reduce(function(s, n) { return s + teamData[n].totalDays; }, 0);
+    // Summary row
+    var totalTickets = depts.reduce(function(s, d) { return s + deptData[d].count; }, 0);
+    var totalDaysAll = depts.reduce(function(s, d) { return s + deptData[d].totalDays; }, 0);
     var overallAvg   = totalTickets ? (totalDaysAll / totalTickets).toFixed(1) : '—';
-    tbody.innerHTML = teams.map(function(team) {
-        var d = teamData[team];
-        var avg = (d.totalDays / d.count).toFixed(1);
-        return '<tr>' +
-            '<td>' + team + '</td>' +
-            '<td style="text-align:center">' + d.count + '</td>' +
-            '<td style="text-align:center"><span class="dwt-open">' + avg + 'd</span></td>' +
-            '</tr>';
-    }).join('') +
-    '<tr style="border-top:2px solid var(--border);font-weight:700;color:var(--text)">' +
-        '<td>' + teams.length + ' teams</td>' +
-        '<td style="text-align:center">' + totalTickets + '</td>' +
-        '<td style="text-align:center"><span class="dwt-open">' + overallAvg + 'd</span></td>' +
-    '</tr>';
+    var sumEl = document.getElementById('dwtSummaryRow');
+    if (sumEl) {
+        var teamCount = Object.keys(teamData).length;
+        sumEl.innerHTML =
+            '<span>' + depts.length + ' departments</span>' +
+            '<span>' + teamCount + ' teams</span>' +
+            '<span>' + totalTickets + ' open tickets</span>' +
+            '<span>Overall avg: <strong style="color:var(--orange)">' + overallAvg + 'd</strong></span>';
+    }
 }
 
 // -- Sorting --
