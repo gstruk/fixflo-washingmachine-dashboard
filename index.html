@@ -340,9 +340,25 @@ footer{text-align:center;color:var(--muted);font-size:0.73rem;padding:20px}
 
 /* Page section entrance animations */
 @keyframes fadeSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.stats-grid{animation:fadeSlideUp 0.4s ease both}
+@keyframes statCardIn{from{opacity:0;transform:translateY(10px) scale(0.96)}to{opacity:1;transform:none}}
+@keyframes trFadeIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.stats-grid{animation:fadeSlideUp 0.35s ease both}
 .chart-card{animation:fadeSlideUp 0.4s ease both}
 .table-card{animation:fadeSlideUp 0.4s 0.28s ease both}
+.stat-card{animation:statCardIn 0.45s cubic-bezier(0.34,1.4,0.64,1) both}
+.stats-grid .stat-card:nth-child(1){animation-delay:0.05s}
+.stats-grid .stat-card:nth-child(2){animation-delay:0.12s}
+.stats-grid .stat-card:nth-child(3){animation-delay:0.19s}
+.stats-grid .stat-card:nth-child(4){animation-delay:0.26s}
+.stats-grid .stat-card:nth-child(5){animation-delay:0.33s}
+.stats-grid .stat-card:nth-child(6){animation-delay:0.40s}
+.stats-grid .stat-card:nth-child(7){animation-delay:0.47s}
+.stats-grid .stat-card:nth-child(8){animation-delay:0.54s}
+.section-header{animation:fadeSlideUp 0.35s ease both}
+.tr-anim{animation:trFadeIn 0.28s ease both}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}
+}
 
 /* Daily update pulse dot in header */
 .live-dot{
@@ -2195,7 +2211,7 @@ function renderTable() {
 
     expandedId = null;
     var tbody = document.getElementById('tableBody');
-    tbody.innerHTML = slice.map(function(t) {
+    tbody.innerHTML = slice.map(function(t, rowIdx) {
         var isClosed   = t.status === 'Closed';
         var isOpenStat = t.isOpen;
 
@@ -2225,9 +2241,13 @@ function renderTable() {
             else if (d > 7) ageClass = ' age-mid';
             else            ageClass = ' age-fresh';
         }
-        var rowAttrs = ' class="row-expandable' + ageClass + (expandedId === t.id ? ' row-expanded' : '') + '"' +
+        var animDelay = (rowIdx * 0.028).toFixed(3) + 's';
+        var rowInlineStyle = rowStyle
+            ? rowStyle + ';animation-delay:' + animDelay
+            : 'animation-delay:' + animDelay;
+        var rowAttrs = ' class="row-expandable tr-anim' + ageClass + (expandedId === t.id ? ' row-expanded' : '') + '"' +
             ' onclick="toggleRow(this,\'' + t.id + '\')"' +
-            (rowStyle ? ' style="' + rowStyle + '"' : '');
+            ' style="' + rowInlineStyle + '"';
 
         var appBadge = (function() {
             var at = t.appliance_type || 'other';
