@@ -1995,6 +1995,28 @@ function toggleRow(tr, id) {
                     (count > 1 ? '<span style="font-size:0.7rem;color:var(--muted);margin-left:2px">(' + count + ' assignments)</span>' : '') +
                     '</div>';
             });
+            // Total Days by Department
+            var DEPT_COLORS = {
+                'CX Team':'#9c27b0','Facilities Team':'#2196f3','Commercial Team':'#00bcd4',
+                'Property Management':'#ff9800','Purchasing (Finance)':'#f44336','Others':'#9e9e9e'
+            };
+            var deptTotals = {};
+            Object.keys(teamTotals).forEach(function(team){
+                var dept = getDeptForTeam(team);
+                deptTotals[dept] = (deptTotals[dept] || 0) + teamTotals[team];
+            });
+            var deptRows = Object.keys(deptTotals)
+                .sort(function(a,b){ return deptTotals[b] - deptTotals[a]; })
+                .map(function(dept){
+                    var days  = Math.round(deptTotals[dept]);
+                    var color = DEPT_COLORS[dept] || '#9e9e9e';
+                    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 4px 8px;border-left:3px solid ' + color + ';margin-bottom:3px">' +
+                        '<span style="width:9px;height:9px;border-radius:50%;background:' + color + ';display:inline-block;flex-shrink:0"></span>' +
+                        '<span style="flex:1;font-size:0.78rem;color:var(--muted)">' + dept + '</span>' +
+                        '<span style="font-size:0.73rem;font-weight:700;color:' + color + '">' + days + 'd</span>' +
+                        '</div>';
+                });
+            var deptGrandTotal = Math.round(Object.keys(deptTotals).reduce(function(s,k){ return s + deptTotals[k]; }, 0));
             return '<div class="expand-full" style="margin-top:8px">' +
                 '<div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">' +
                   '<div style="flex:1;min-width:220px">' +
@@ -2004,6 +2026,14 @@ function toggleRow(tr, id) {
                   '<div style="flex:1;min-width:180px;padding-left:20px;border-left:1px solid var(--border)">' +
                     '<div style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Total Days by Team</div>' +
                     summaryRows.join('') +
+                  '</div>' +
+                  '<div style="flex:1;min-width:180px;padding-left:20px;border-left:1px solid var(--border)">' +
+                    '<div style="font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">&#x1F4CA; Total Days by Department</div>' +
+                    deptRows.join('') +
+                    '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.73rem">' +
+                      '<span style="color:var(--muted)">Total Duration:</span>' +
+                      '<span style="color:#00aa44;font-weight:700">' + deptGrandTotal + ' days</span>' +
+                    '</div>' +
                   '</div>' +
                 '</div>' +
                 '</div>';
