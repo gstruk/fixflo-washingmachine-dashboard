@@ -197,6 +197,24 @@ tr:hover td{background:var(--surface2)}
 .dwt-team-avg{font-size:0.78rem;font-weight:700;min-width:46px;text-align:right}
 .dwt-team-mini-bar{height:3px;border-radius:2px;min-width:4px;flex-shrink:0}
 .dwt-summary-row{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--muted);display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+/* ── Charge Customer Monitor ── */
+.cc-header-stats{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.cc-stat-pill{display:flex;flex-direction:column;align-items:center;background:rgba(227,179,65,0.08);border:1px solid rgba(227,179,65,0.22);border-radius:8px;padding:8px 18px;min-width:90px}
+.cc-stat-pill.cc-breach{background:rgba(248,81,73,0.08);border-color:rgba(248,81,73,0.3)}
+.cc-stat-val{font-size:1.35rem;font-weight:700;color:var(--yellow);line-height:1.1}
+.cc-stat-pill.cc-breach .cc-stat-val{color:#f85149}
+.cc-stat-label{font-size:0.67rem;color:var(--muted);margin-top:2px;text-align:center}
+.cc-ticket-table{width:100%;border-collapse:collapse;font-size:0.78rem}
+.cc-ticket-table th{color:var(--muted);font-weight:500;padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.cc-ticket-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+.cc-ticket-table tr:last-child td{border-bottom:none}
+.cc-breach-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(248,81,73,0.12);border:1px solid rgba(248,81,73,0.4);color:#f85149;padding:1px 6px;border-radius:10px;font-size:0.67rem;font-weight:600;white-space:nowrap}
+.cc-ok-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.35);color:var(--green);padding:1px 6px;border-radius:10px;font-size:0.67rem;font-weight:600;white-space:nowrap}
+.cc-dwt-bar{display:inline-block;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px;min-width:3px}
+.cc-empty{color:var(--muted);font-size:0.8rem;padding:12px 0;text-align:center}
+.cc-sla-note{font-size:0.69rem;color:var(--muted);margin-bottom:10px}
+.cc-ticket-id{color:var(--blue);font-size:0.72rem;text-decoration:none}
+.cc-ticket-id:hover{text-decoration:underline}
 .tbl-hide-closed .col-closed{display:none}
 .pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0 4px;font-size:0.82rem;color:var(--muted)}
 .pagination button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem}
@@ -969,6 +987,14 @@ body.filter-closed-only [data-card-type="open"]{display:none}
     </div>
   </div>
 
+  <!-- Charge Customer Monitor -->
+  <div id="ccMonitorSection" class="charts-row" style="margin-bottom:20px">
+    <div class="chart-card" style="border-top:2px solid rgba(227,179,65,0.35)">
+      <div class="chart-title"><span class="dot" style="background:var(--yellow)"></span>Charge Customer &mdash; SLA Monitor <span style="font-size:0.72rem;font-weight:400;color:var(--muted);margin-left:8px">7-day SLA</span></div>
+      <div id="ccMonitorBody"><div class="cc-empty">No data</div></div>
+    </div>
+  </div>
+
 </main>
 <footer>Leevin Home &middot; Fixflo Dashboard &middot; 2026-05-13 08:49:27</footer>
 </div><!-- /dashboard-wrap -->
@@ -1541,6 +1567,7 @@ function updateCharts() {
     updatePropertyHealth(filteredData);
     updateSla(filteredData);
     updateTeamDwt(filteredData);
+    updateChargeCustomer(filteredData);
 }
 
 // -- Property Health Score --
@@ -1858,6 +1885,72 @@ function updateTeamDwt(data) {
             '<span>' + totalTickets + ' open tickets</span>' +
             '<span>Overall avg: <strong style="color:var(--orange)">' + overallAvg + 'd</strong></span>';
     }
+}
+
+// -- Charge Customer SLA Monitor (7-day SLA) --
+function updateChargeCustomer(data) {
+    var CC_SLA = 7;
+    var tickets = data.filter(function(t) {
+        return t.isOpen && t.team === 'Charge customer';
+    });
+
+    var body = document.getElementById('ccMonitorBody');
+    if (!body) return;
+
+    if (tickets.length === 0) {
+        body.innerHTML = '<div class="cc-empty">No open tickets currently with Charge Customer team</div>';
+        return;
+    }
+
+    tickets.sort(function(a, b) {
+        return (dwtDays(b) || 0) - (dwtDays(a) || 0);
+    });
+
+    var breachCount = tickets.filter(function(t) {
+        var d = dwtDays(t);
+        return d !== null && d > CC_SLA;
+    }).length;
+    var totalDays = tickets.reduce(function(s, t) {
+        return s + (dwtDays(t) || 0);
+    }, 0);
+    var avgDays = tickets.length ? (totalDays / tickets.length).toFixed(1) : '—';
+    var avgBreached = parseFloat(avgDays) > CC_SLA;
+
+    var maxDwt = Math.max.apply(null, tickets.map(function(t) { return dwtDays(t) || 0; })) || 1;
+
+    var rows = tickets.map(function(t) {
+        var d = dwtDays(t);
+        var dStr = (d !== null) ? d + 'd' : '—';
+        var isBreach = d !== null && d > CC_SLA;
+        var barW = d !== null ? Math.round((d / Math.max(maxDwt, CC_SLA)) * 80) : 0;
+        var barColor = isBreach ? '#f85149' : '#e3b341';
+        var badge = isBreach
+            ? '<span class="cc-breach-badge">&#x26A0; Breach</span>'
+            : '<span class="cc-ok-badge">&#x2713; OK</span>';
+        var ticketLink = t.id
+            ? '<a class="cc-ticket-id" href="https://app.fixflo.com/Issue/Detail/' + t.id + '" target="_blank">' + t.id + '</a>'
+            : '—';
+        return '<tr>' +
+            '<td>' + ticketLink + '</td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">' + (t.title || '—') + '</td>' +
+            '<td style="color:var(--muted);font-size:0.71rem">' + (t.prop || '—') + '</td>' +
+            '<td><span class="cc-dwt-bar" style="width:' + barW + 'px;background:' + barColor + '"></span><span style="color:' + barColor + ';font-weight:600">' + dStr + '</span></td>' +
+            '<td>' + badge + '</td>' +
+            '</tr>';
+    }).join('');
+
+    body.innerHTML =
+        '<div class="cc-header-stats">' +
+            '<div class="cc-stat-pill"><span class="cc-stat-val">' + tickets.length + '</span><span class="cc-stat-label">Open tickets</span></div>' +
+            '<div class="cc-stat-pill' + (breachCount > 0 ? ' cc-breach' : '') + '"><span class="cc-stat-val">' + breachCount + '</span><span class="cc-stat-label">SLA Breaches</span></div>' +
+            '<div class="cc-stat-pill' + (avgBreached ? ' cc-breach' : '') + '"><span class="cc-stat-val">' + avgDays + 'd</span><span class="cc-stat-label">Avg DWT</span></div>' +
+            '<div class="cc-stat-pill"><span class="cc-stat-val" style="color:var(--muted);font-size:1rem">' + CC_SLA + 'd</span><span class="cc-stat-label">SLA threshold</span></div>' +
+        '</div>' +
+        '<p class="cc-sla-note">Days With Team (DWT) counted from current team assignment date. Breach = DWT &gt; ' + CC_SLA + ' days.</p>' +
+        '<table class="cc-ticket-table">' +
+            '<thead><tr><th>Ticket</th><th>Title</th><th>Property</th><th>DWT</th><th>Status</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+        '</table>';
 }
 
 // -- Sorting --
